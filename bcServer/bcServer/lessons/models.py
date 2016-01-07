@@ -15,3 +15,7 @@ class Lesson(models.Model):
     optional = models.BooleanField(default=True)
     def __str__(self):
         return self.name
+
+class Submit(models.Model):
+    result = models.BooleanField(editable=False)
+    lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE)
