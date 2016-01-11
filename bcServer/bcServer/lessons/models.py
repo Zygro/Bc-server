@@ -2,6 +2,7 @@
 import datetime
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 
 # Create your models here.
 
@@ -17,5 +18,6 @@ class Lesson(models.Model):
         return self.name
 
 class Submit(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     result = models.BooleanField(editable=False)
     lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE)
