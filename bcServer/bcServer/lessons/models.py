@@ -19,5 +19,5 @@ class Lesson(models.Model):
 
 class Submit(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    result = models.BooleanField(editable=False)
+    result = models.BooleanField()
     lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE)
