@@ -19,5 +19,5 @@ class Lesson(models.Model):
 
 class Submit(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    result = models.BooleanField()
     lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE)
+    submittedFile = models.FileField(upload_to='submits')

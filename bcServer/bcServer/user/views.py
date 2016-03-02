@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'username', 'first_name', 'last_name', 'email',
+            'id', 'username', 'password'
         )
         read_only_fields = ('id')
 
@@ -36,7 +36,7 @@ class UserViewSet(
         if user is None:
             return self._fail_login_response('Incorrect credentials.')
         return self._successful_login_response(user)
-        
+
     def _successful_login_response(self, user):
         token = Token.objects.get_or_create(user=user)[0]
         return Response({'token': token.key})
