@@ -17,7 +17,6 @@ class LessonSerializer(serializers.ModelSerializer):
 class SubmitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submit
-        data = serializers.JSONField()
         fields = (
             'id', 'user', 'lesson', 'submittedFile'
         )
