@@ -17,17 +17,14 @@ class LessonSerializer(serializers.ModelSerializer):
 class SubmitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submit
-
-    fields = ('id', 'lesson', 'submittedFile','user')
-    read_only_fields = ('id', 'user','lesson')
+        fields = ('id', 'lesson', 'submittedFile','user')
+        read_only_fields = ('id', 'user','lesson')
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model=Comment
         fields = ('id', 'lesson', 'text','user')
         read_only_fields = ('id', 'user','lesson')
-    def create(self, validated_data):
-        return Comment.objects.create(**validated_data)
 
 class CommentViewSet(
     mixins.ListModelMixin,
