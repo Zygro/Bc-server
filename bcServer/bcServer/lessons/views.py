@@ -8,7 +8,7 @@ from rest_framework import viewsets, mixins, permissions, serializers
 
 from rest_framework.response import Response
 from .forms import SubmitForm
-from .models import Lesson, Submit
+from .models import Lesson, Submit,Comment
 
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,10 +17,34 @@ class LessonSerializer(serializers.ModelSerializer):
 class SubmitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submit
-        fields = (
-            'id', 'user', 'lesson', 'submittedFile'
-        )
-        read_only_fields = ('id')
+
+    fields = ('id', 'lesson', 'submittedFile','user')
+    read_only_fields = ('id', 'user','lesson')
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Comment
+        fields = ('id', 'lesson', 'text','user')
+        read_only_fields = ('id', 'user','lesson')
+    def create(self, validated_data):
+        return Comment.objects.create(**validated_data)
+
+class CommentViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+
+    serializer_class = CommentSerializer
+
+    def perform_create(self, serializer):
+        lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
+        serializer.save(user=self.request.user, lesson = lessonInstance)
+
+    def get_queryset(self):
+        lessonID = self.kwargs['lessonID']
+        return Comment.objects.filter(lesson=lessonID)
 
 class LessonViewSet(
     mixins.ListModelMixin,
@@ -36,28 +60,14 @@ class SubmitViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet,
 ):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = SubmitSerializer
+
+    def perform_create(self, serializer):
+        lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
+        serializer.save(user=self.request.user, lesson = lessonInstance)
+
     def get_queryset(self):
+        userID = self.request.user
         lessonID = self.kwargs['lessonID']
-        return Submit.objects.filter(lesson=lessonID, user=self.request.user)
-
-"""    def submitfile (self, request, *args, **kwargs):
-        if request.method == 'POST':
-            form = SubmitForm(request.POST, request.FILES)
-            if form.is_valid():
-                print('valid')
-                newSubmit = Submit(
-                    user = self.request.user,
-                    lessonID = self.kwargs['lessonID'],
-                    submitfile = request.FILES['submitfile']
-                    )
-                print('hello')
-                newSubmit.save()
-
-                return Response({'status': 'ok'})
-            else:
-                form = SubmitForm()
-
-            submits = Submit.objects.all()
-
-            return Response(submits)"""
+        return Submit.objects.filter(lesson=lessonID, user=userID)

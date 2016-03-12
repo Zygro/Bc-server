@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Avg
+
 # Create your models here.
 
 class Rating(models.Model):
@@ -22,7 +23,6 @@ class Rating(models.Model):
             MaxValueValidator(5),
             MinValueValidator(1)
         ])
->>>>>>> e093eb9758aa6f44e7cd385561b8c6a292174ccb
 class Lesson(models.Model):
     name = models.CharField(max_length=256)
     problem = models.TextField()
@@ -41,10 +41,15 @@ class Submit(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     lesson = models.ForeignKey('Lesson')
     submittedFile = models.FileField(upload_to='submits')
+class Comment(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    lesson = models.ForeignKey('Lesson')
+    text = models.TextField()
 
 class Rating(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     lesson = models.ForeignKey('Lesson')
+
     difficulty = models.IntegerField(
         default=3,
         validators=[
@@ -59,3 +64,6 @@ class Rating(models.Model):
             MinValueValidator(1)
         ]
      )
+
+    class Meta:
+        unique_together = ('user', 'lesson')
