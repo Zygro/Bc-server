@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from .forms import SubmitForm
 from .serializers import CommentSerializer, LessonSerializer, SubmitSerializer
 from .models import Comment, Lesson, Submit
-
+from .helpers import compare_files
 class CommentViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -47,7 +47,10 @@ class SubmitViewSet(
 
     def perform_create(self, serializer):
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
-        serializer.save(user=self.request.user, lesson = lessonInstance)
+        print (lessonInstance.correct_solution)
+        res = compare_files(lessonInstance.correct_solution, self.request.POST.get('submittedFile'))
+        serializer.save(user = self.request.user, lesson = lessonInstance, result = res)
+
 
     def get_queryset(self):
         userID = self.request.user

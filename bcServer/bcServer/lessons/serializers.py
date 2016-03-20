@@ -9,8 +9,8 @@ class LessonSerializer(serializers.ModelSerializer):
 class SubmitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submit
-        fields = ('id', 'lesson', 'submittedFile','user')
-        read_only_fields = ('id', 'user','lesson')
+        fields = ('id', 'lesson', 'submittedFile','user', 'result')
+        read_only_fields = ('id', 'user','lesson', 'result')
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
