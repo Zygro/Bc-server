@@ -31,6 +31,7 @@ class Lesson(models.Model):
     bad_solutions = models.IntegerField(default=0)
     number = models.IntegerField(default=1)
     optional = models.BooleanField(default=True)
+    inputs = models.FileField(null=True, blank=True)
     correct_solution = models.FileField(null=True, blank=True)
     #fun = models.IntegerField(default=Rating.objects.filter(lesson=id).aggregate(Avg('fun')))
 

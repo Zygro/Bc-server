@@ -11,3 +11,8 @@ class UserStat(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     def __str__ (self):
         return self.user.email
+class User_LessonStat(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    lesson = models.ForeignKey('lessons.Lesson')
+    def __str__ (self):
+        return (self.user.email+"-"+self.lesson.name)
