@@ -4,28 +4,13 @@ from django.http import HttpResponse
 
 from django.conf import settings
 
-from rest_framework import viewsets, mixins, permissions, serializers
+from rest_framework import viewsets, mixins, permissions
 
 from rest_framework.response import Response
 from .forms import SubmitForm
-from .models import Lesson, Submit,Comment
-
-class LessonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lesson
-
-class SubmitSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Submit
-        fields = ('id', 'lesson', 'submittedFile','user')
-        read_only_fields = ('id', 'user','lesson')
-
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Comment
-        fields = ('id', 'lesson', 'text','user')
-        read_only_fields = ('id', 'user','lesson')
-
+from .serializers import CommentSerializer, LessonSerializer, SubmitSerializer
+from .models import Comment, Lesson, Submit
+from .helpers import compare_files
 class CommentViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -62,7 +47,10 @@ class SubmitViewSet(
 
     def perform_create(self, serializer):
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
-        serializer.save(user=self.request.user, lesson = lessonInstance)
+        print (lessonInstance.correct_solution)
+        res = compare_files(lessonInstance.correct_solution, self.request.POST.get('submittedFile'))
+        serializer.save(user = self.request.user, lesson = lessonInstance, result = res)
+
 
     def get_queryset(self):
         userID = self.request.user
