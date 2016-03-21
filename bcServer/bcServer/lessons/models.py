@@ -8,21 +8,7 @@ from django.db.models import Avg
 
 # Create your models here.
 
-class Rating(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    lesson = models.ForeignKey('Lesson')
-    fun = models.IntegerField(
-        default=3,
-        validators=[
-            MaxValueValidator(5),
-            MinValueValidator(1)
-        ])
-    difficulty = models.IntegerField(
-        default=3,
-        validators=[
-            MaxValueValidator(5),
-            MinValueValidator(1)
-        ])
+
 class Lesson(models.Model):
     name = models.CharField(max_length=256)
     problem = models.TextField()
@@ -47,25 +33,3 @@ class Comment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     lesson = models.ForeignKey('Lesson')
     text = models.TextField()
-
-class Rating(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    lesson = models.ForeignKey('Lesson')
-
-    difficulty = models.IntegerField(
-        default=3,
-        validators=[
-            MaxValueValidator(5),
-            MinValueValidator(1)
-        ]
-     )
-    fun = models.IntegerField(
-        default=3,
-        validators=[
-            MaxValueValidator(5),
-            MinValueValidator(1)
-        ]
-     )
-
-    class Meta:
-        unique_together = ('user', 'lesson')
