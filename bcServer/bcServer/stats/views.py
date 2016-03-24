@@ -21,6 +21,7 @@ class RatingViewSet(
     def perform_create(self, serializer):
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
         serializer.save(user=self.request.user, lesson = lessonInstance)
+        lessonInstance.save()
 
     def get_queryset(self):
         lessonID = self.kwargs['lessonID']
