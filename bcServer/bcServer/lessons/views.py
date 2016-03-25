@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from .forms import SubmitForm
 from .serializers import CommentSerializer, LessonSerializer, SubmitSerializer
 from .models import Comment, Lesson, Submit
+from bcServer.user.models import UserLessonWrapper
 from .helpers import compare_files
 class CommentViewSet(
     mixins.ListModelMixin,
@@ -47,7 +48,13 @@ class SubmitViewSet(
 
     def perform_create(self, serializer):
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
-        print (lessonInstance.correct_solution)
+        wrapper = UserLessonWrapper.objects.filter(lesson = lessonInstance, user = self.request.user)
+        if len(wrapper) == 0:
+            w = UserLessonWrapper (
+                lesson = lessonInstance,
+                user = self.request.user
+            )
+            w.save()
         res = compare_files(lessonInstance.correct_solution, self.request.POST.get('submittedFile'))
         serializer.save(user = self.request.user, lesson = lessonInstance, result = res)
 
