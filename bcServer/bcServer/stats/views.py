@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from rest_framework import viewsets, mixins, permissions
 from .serializers import RatingSerializer
-from .models import Rating
+from .models import Rating, LessonStat
 from bcServer.lessons.models import Lesson
 # Create your views here.
 
@@ -21,7 +21,8 @@ class RatingViewSet(
     def perform_create(self, serializer):
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
         serializer.save(user=self.request.user, lesson = lessonInstance)
-
+        lessonStat = LessonStat.objects.get(lesson = lessonInstance)
+        lessonStat.save()
     def get_queryset(self):
         lessonID = self.kwargs['lessonID']
         return Rating.objects.filter(user=self.request.user, lesson=lessonID)
