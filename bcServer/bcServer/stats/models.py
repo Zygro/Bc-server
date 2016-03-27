@@ -47,8 +47,7 @@ class User_LessonStat(models.Model):
         return (self.user.email+"-"+self.lesson.name)
     class Meta:
         unique_together=('lesson','user')
-
-
+        
 
 def set_avg_fun (sender, instance, *args, **kwargs):
     avg = Rating.objects.filter(lesson=instance.lesson).aggregate(Avg('fun'))['fun__avg']
