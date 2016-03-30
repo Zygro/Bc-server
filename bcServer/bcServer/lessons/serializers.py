@@ -1,9 +1,9 @@
-
 from rest_framework import serializers
-from .models import Lesson, Submit,Comment
+from .models import Lesson, Submit, Comment
 
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
+        fields = ('id', 'number','pub_date', 'optional','inputs','name','problem')
         model = Lesson
 
 class SubmitSerializer(serializers.ModelSerializer):
