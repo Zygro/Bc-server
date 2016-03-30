@@ -43,6 +43,7 @@ class UserStat(models.Model):
     progress = models.IntegerField(default=0)
     def __str__ (self):
         return self.user.username
+        
 class User_LessonStat(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     lesson = models.ForeignKey('lessons.Lesson')

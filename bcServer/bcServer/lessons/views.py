@@ -36,7 +36,10 @@ class LessonViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = Lesson.objects.all()
+    def get_queryset(self):
+        player_progress = apps.get_model('stats','UserStat').objects.get(user=self.request.user).progress
+        return Lesson.objects.filter(number__lte = player_progress)
+
     serializer_class = LessonSerializer
 
 class SubmitViewSet(

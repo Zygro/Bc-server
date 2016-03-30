@@ -3,6 +3,7 @@ from .models import Lesson, Submit, Comment
 
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
+        fields = ('id', 'number','pub_date', 'optional','inputs','name','problem')
         model = Lesson
 
 class SubmitSerializer(serializers.ModelSerializer):
