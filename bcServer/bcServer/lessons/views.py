@@ -1,6 +1,8 @@
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse
+from django.contrib.auth import get_user_model
+from django.apps import apps
 
 from django.conf import settings
 
@@ -56,6 +58,15 @@ class SubmitViewSet(
             )
             w.save()
         res = compare_files(lessonInstance.correct_solution, self.request.POST.get('submittedFile'))
+        if res:
+            wrapper = UserLessonWrapper.objects.get(lesson = lessonInstance, user = self.request.user)
+            print(wrapper.completed)
+            if not(wrapper.completed):
+                wrapper.completed=True
+                wrapper.save()
+                userStat = apps.get_model('stats','UserStat').objects.get(user = self.request.user)
+                userStat.progress += 1
+                userStat.save()
         serializer.save(user = self.request.user, lesson = lessonInstance, result = res)
 
 

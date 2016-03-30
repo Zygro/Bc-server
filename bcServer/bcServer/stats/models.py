@@ -25,9 +25,11 @@ class Rating(models.Model):
             MinValueValidator(1)
         ]
     )
+    def __str__ (self):
+        return (self.user.username+"-"+self.lesson.name)
 
 class LessonStat(models.Model):
-    lesson = models.ForeignKey('lessons.Lesson', unique=True)
+    lesson = models.OneToOneField('lessons.Lesson')
     avg_fun = models.FloatField(null=True, blank=True)
     avg_diff = models.FloatField(null=True, blank=True)
     good_solutions = models.IntegerField(null=True, blank=True)
@@ -37,17 +39,18 @@ class LessonStat(models.Model):
 
 
 class UserStat(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, unique=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL)
+    progress = models.IntegerField(default=0)
     def __str__ (self):
-        return self.user.email
+        return self.user.username
 class User_LessonStat(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     lesson = models.ForeignKey('lessons.Lesson')
     def __str__ (self):
-        return (self.user.email+"-"+self.lesson.name)
+        return (self.user.username+"-"+self.lesson.name)
     class Meta:
         unique_together=('lesson','user')
-        
+
 
 def set_avg_fun (sender, instance, *args, **kwargs):
     avg = Rating.objects.filter(lesson=instance.lesson).aggregate(Avg('fun'))['fun__avg']

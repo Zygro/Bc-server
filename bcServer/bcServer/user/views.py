@@ -1,6 +1,7 @@
 from django.db import models
 from django.shortcuts import render
 from django.contrib.auth import get_user_model
+from django.apps import apps
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
@@ -8,7 +9,6 @@ from rest_framework import viewsets, permissions, status, mixins, serializers, v
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
 # Create your views here.
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
 
             user.set_password(validated_data['password'])
             user.save()
-
+            apps.get_model('stats', 'UserStat')(user=user).save()
             return user
 '''
 @api_view(['POST'])
