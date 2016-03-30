@@ -4,14 +4,13 @@ from django.http import HttpResponse
 
 from django.conf import settings
 from rest_framework import viewsets, mixins, permissions
-from .serializers import RatingSerializer
+from .serializers import RatingSerializer, DueToChangeSerializer
 from .models import Rating, LessonStat
 from bcServer.lessons.models import Lesson
 # Create your views here.
 
 class RatingViewSet(
     mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
     viewsets.GenericViewSet
 ):
@@ -26,3 +25,12 @@ class RatingViewSet(
     def get_queryset(self):
         lessonID = self.kwargs['lessonID']
         return Rating.objects.filter(user=self.request.user, lesson=lessonID)
+
+class DueToChangeViewSet(
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
+):
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = DueToChangeSerializer
+    def get_queryset(self):
+        return LessonStat.objects.filter(avg_fun__lte=3)

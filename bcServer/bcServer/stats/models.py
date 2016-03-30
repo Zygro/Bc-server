@@ -8,6 +8,7 @@ from django.db.models.signals import pre_save
 # Create your models here.
 
 class Rating(models.Model):
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     lesson = models.ForeignKey('lessons.Lesson')
 
@@ -27,6 +28,8 @@ class Rating(models.Model):
     )
     def __str__ (self):
         return (self.user.username+"-"+self.lesson.name)
+    class meta:
+        unique_together=('user','lesson')
 
 class LessonStat(models.Model):
     lesson = models.OneToOneField('lessons.Lesson')
@@ -43,7 +46,7 @@ class UserStat(models.Model):
     progress = models.IntegerField(default=0)
     def __str__ (self):
         return self.user.username
-        
+
 class User_LessonStat(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     lesson = models.ForeignKey('lessons.Lesson')
