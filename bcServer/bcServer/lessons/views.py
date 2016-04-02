@@ -67,9 +67,10 @@ class SubmitViewSet(
             if not(wrapper.completed):
                 wrapper.completed=True
                 wrapper.save()
-                userStat = apps.get_model('stats','UserStat').objects.get(user = self.request.user)
-                userStat.progress += 1
-                userStat.save()
+                if not(lessonInstance.optional):
+                    userStat = apps.get_model('stats','UserStat').objects.get(user = self.request.user)
+                    userStat.progress += 1
+                    userStat.save()
         serializer.save(user = self.request.user, lesson = lessonInstance, result = res)
 
 

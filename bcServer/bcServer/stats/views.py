@@ -1,6 +1,7 @@
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse
+from itertools import chain
 
 from django.conf import settings
 from rest_framework import viewsets, mixins, permissions
@@ -33,4 +34,4 @@ class DueToChangeViewSet(
     permission_classes = [permissions.IsAdminUser]
     serializer_class = DueToChangeSerializer
     def get_queryset(self):
-        return LessonStat.objects.filter(avg_fun__lte=3)
+        return LessonStat.objects.filter(avg_fun__lte=3) | LessonStat.objects.filter(avg_diff__lte=2) | LessonStat.objects.filter(avg_diff__gte=4)

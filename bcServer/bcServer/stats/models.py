@@ -28,7 +28,7 @@ class Rating(models.Model):
     )
     def __str__ (self):
         return (self.user.username+"-"+self.lesson.name)
-    class meta:
+    class Meta:
         unique_together=('user','lesson')
 
 class LessonStat(models.Model):
