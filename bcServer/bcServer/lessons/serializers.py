@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Lesson, Submit, Comment
+from .models import Lesson, Submit, Comment, Hint
 
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,3 +17,8 @@ class CommentSerializer(serializers.ModelSerializer):
         model=Comment
         fields = ('id', 'lesson', 'text','user')
         read_only_fields = ('id', 'user','lesson')
+
+class HintSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hint
+        fields = ('id','lesson','text')

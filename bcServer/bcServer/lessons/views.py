@@ -3,17 +3,18 @@ from django.template import RequestContext
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.apps import apps
-
 from django.conf import settings
 
+from rest_framework.decorators import list_route
 from rest_framework import viewsets, mixins, permissions
-
 from rest_framework.response import Response
+
 from .forms import SubmitForm
-from .serializers import CommentSerializer, LessonSerializer, SubmitSerializer
-from .models import Comment, Lesson, Submit
+from .serializers import CommentSerializer, LessonSerializer, SubmitSerializer, HintSerializer
+from .models import Comment, Lesson, Submit, Hint
 from bcServer.user.models import UserLessonWrapper
 from .helpers import compare_files
+
 class CommentViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -78,3 +79,24 @@ class SubmitViewSet(
         userID = self.request.user
         lessonID = self.kwargs['lessonID']
         return Submit.objects.filter(lesson=lessonID, user=userID)
+
+class HintViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = HintSerializer
+    def get_queryset(self):
+        lesson = Lesson.objects.get(id=self.kwargs['lessonID'])
+        wrapper = UserLessonWrapper.objects.get(lesson = lesson, user = self.request.user)
+        return lesson.hint_set.filter(number__lte = wrapper.hints_used)
+
+    @list_route()
+    def get_new_hint(self, request, *args, **kwargs):
+        lesson = Lesson.objects.get(id=self.kwargs['lessonID'])
+        wrapper = UserLessonWrapper.objects.get(lesson = lesson, user = self.request.user)
+        if wrapper.hints_used < len(lesson.hint_set.all()):
+            wrapper.hints_used += 1
+            wrapper.save()
+        hints = Hint.objects.filter(lesson = lesson, number__lte = wrapper.hints_used)
+        serializer = HintSerializer(hints, many = True)
+        return Response(serializer.data)

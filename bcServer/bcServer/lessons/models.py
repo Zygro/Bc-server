@@ -42,6 +42,7 @@ def PushOtherLessons (sender, instance, *args, **kwargs):
         while len(Lesson.objects.filter(number = (instance.number-1)))==0 and instance.number>1:
             Lesson.objects.filter(id=instance.id).update(number = F('number')-1)
             instance.number -= 1
+
 def MakeLessonStat (sender, instance, *args, **kwargs):
     if len(apps.get_model('stats', 'LessonStat').objects.filter(lesson_id=instance.id))==0 :
         stat = apps.get_model('stats', 'LessonStat')(lesson=instance)
@@ -54,7 +55,16 @@ class Submit(models.Model):
     lesson = models.ForeignKey('Lesson')
     submittedFile = models.FileField(upload_to='submits')
     result = models.BooleanField(default=False)
+    def __str__(self):
+        return self.user.username + ' ' + self.lesson.name
 class Comment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     lesson = models.ForeignKey('Lesson')
     text = models.TextField()
+
+class Hint(models.Model):
+    lesson = models.ForeignKey('Lesson')
+    number = models.IntegerField(default=1)
+    text = models.TextField()
+    def __str__(self):
+        return self.lesson.name + ' - ' + str(self.number)
