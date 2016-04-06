@@ -66,7 +66,7 @@ ROOT_URLCONF = 'bcServer.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['bcServer.lessons.templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

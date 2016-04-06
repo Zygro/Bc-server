@@ -5,15 +5,19 @@ from django.contrib.auth import get_user_model
 from django.apps import apps
 from django.conf import settings
 
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, api_view
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.response import Response
+from rest_framework import renderers
+from rest_framework.views import APIView
 
 from .forms import SubmitForm
 from .serializers import CommentSerializer, LessonSerializer, SubmitSerializer, HintSerializer
 from .models import Comment, Lesson, Submit, Hint
 from bcServer.user.models import UserLessonWrapper
 from .helpers import compare_files
+
+Base_url = '127.0.0.1:8000/'
 
 class CommentViewSet(
     mixins.ListModelMixin,
@@ -37,11 +41,25 @@ class LessonViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
+    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
+    serializer_class = LessonSerializer
     def get_queryset(self):
         player_progress = apps.get_model('stats','UserStat').objects.get(user=self.request.user).progress
         return Lesson.objects.filter(number__lte = player_progress)
+    def show(self, request, *args, **kwargs):
+        lessons = self.get_queryset()
+        response = super(LessonViewSet, self).list(request, *args, **kwargs)
+        if request.accepted_renderer.format == 'html':
+            return Response({'lessons': lessons}, template_name='lessonslist.html')
+        return response
+    def showSingleLesson(self, request, *args, **kwargs):
+        lesson = Lesson.objects.get(id=self.kwargs['lessonID'])
+        player_progress = apps.get_model('stats','UserStat').objects.get(user=self.request.user).progress
+        if(lesson.number > player_progress):
+            return Response({'details': 'Unauthorized for this lesson'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'lesson': lesson, 'base_url':Base_url}, template_name='singlelesson.html')
 
-    serializer_class = LessonSerializer
+
 
 class SubmitViewSet(
     mixins.ListModelMixin,
@@ -100,3 +118,20 @@ class HintViewSet(
         hints = Hint.objects.filter(lesson = lesson, number__lte = wrapper.hints_used)
         serializer = HintSerializer(hints, many = True)
         return Response(serializer.data)
+
+class Lessonslist(APIView):
+    renderer_classes = [renderers.TemplateHTMLRenderer]
+    template_name = 'lessonslist.html'
+
+    def get(self, request):
+        player_progress = apps.get_model('stats','UserStat').objects.get(user=self.request.user).progress
+        queryset = Lesson.objects.filter(number__lte = player_progress).order_by('number')
+
+        return Response({'lessons': queryset, 'base_url':Base_url})
+'''
+class SingleLesson(APIView):
+    renderer_classes = [renderers.TemplateHTMLRenderer]
+    template_name = 'singlelesson.html'
+
+    def get(self,request,*args,**kwargs):
+'''

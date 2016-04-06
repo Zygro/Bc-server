@@ -19,10 +19,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = (
-            'id', 'username', 'password','email'
+            'id', 'username','email', 'first_name', 'last_name'
         )
         read_only_fields = ('id')
-        write_only_fiels = ('password')
 
 
     def create(self, validated_data):
@@ -73,6 +72,23 @@ class UserViewSet(
             return self._fail_login_response('Incorrect credentials.')
         return self._successful_login_response(user)
 
+    def update_profile(self, request, *args, **kwargs):
+        user = self.request.user
+        print (request.data)
+        if 'first_name' in request.data:
+            user.first_name = request.data['first_name']
+        if 'last_name' in request.data:
+            user.last_name = request.data['last_name']
+        if 'email' in request.data:
+            if len(User.objects.filter(email = request.data['email']))>0:
+                return Response({'detail': 'email already used'}, status=status.HTTP_400_BAD_REQUEST)
+            else: user.email = request.data['email']
+        if 'username' in request.data:
+            if len(User.objects.filter(username = request.data['username']))>0:
+                return Response({'detail': 'username already used'}, status=status.HTTP_400_BAD_REQUEST)
+            else: user.username = request.data['username']
+        user.save()
+        return Response(self.get_serializer(request.user).data)
     def _successful_login_response(self, user):
         token = Token.objects.get_or_create(user=user)[0]
         return Response({'token': token.key})

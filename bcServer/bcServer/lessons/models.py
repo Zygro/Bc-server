@@ -21,7 +21,7 @@ class Lesson(models.Model):
     correct_solution = models.FileField(null=True, blank=True, upload_to='outputs')
 
     def __str__(self):
-        return self.name
+        return str(self.number)+'-'+self.name
 
 def PushOtherLessons (sender, instance, *args, **kwargs):
     if not(instance.optional):

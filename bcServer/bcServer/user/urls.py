@@ -6,5 +6,5 @@ urlpatterns = [
     url(r'^$', UserViewSet.as_view({'get': 'list'})),
     url(r'^login', UserViewSet.as_view({'post': 'login'})),
     url(r'^register', UserViewSet.as_view({'post': 'create'})),
-    #url(r'^register', 'bcServer.user.views.register'),
+    url(r'^update', UserViewSet.as_view({'post': 'update_profile'})),
 ]
