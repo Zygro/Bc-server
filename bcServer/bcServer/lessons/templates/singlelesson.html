@@ -1,5 +1,13 @@
+{% load rest_framework %}
+
 <html><body>
 <a href="../">back</a>
 <h1>Lesson {{lesson.number}}: {{lesson.name}}</h1>
 <p>{{lesson.problem}}</p>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+   {% render_form submitSerializer %}
+  <input type="submit" value="Save">
+</form>
 </body></html>
