@@ -47,14 +47,18 @@ class LessonViewSet(
     serializer_class = LessonSerializer
     def get_queryset(self):
         player_progress = apps.get_model('stats','UserStat').objects.get(user=self.request.user).progress
-        return Lesson.objects.filter(number__lte = player_progress)
+        return Lesson.objects.filter(number__lte = player_progress).order_by('number')
     def show(self, request, *args, **kwargs):
-        lessons = self.get_queryset().order_by('number')
-        response = super(LessonViewSet, self).list(request, *args, **kwargs)
         if request.accepted_renderer.format == 'html':
-            return Response({'lessons': lessons}, template_name='lessonslist.html')
+            return Response(template_name='lessonslist.html')
         return response
-
+    def singleLesson(self, request, *args, **kwargs):
+        player_progress = apps.get_model('stats','UserStat').objects.get(user=self.request.user).progress
+        lesson = Lesson.objects.get(id=self.kwargs['lessonID'])
+        if lesson.number > player_progress:
+            return Respone(status=status.HTTP_400_BAD_REQUEST)
+        serializer = LessonSerializer(lesson)
+        return Response(serializer.data)
 
 
 class SubmitViewSet(
@@ -67,6 +71,7 @@ class SubmitViewSet(
     serializer_class = SubmitSerializer
 
     def perform_create(self, serializer):
+        print('create?')
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
         wrapper = UserLessonWrapper.objects.filter(lesson = lessonInstance, user = self.request.user)
         if len(wrapper) == 0:
@@ -129,14 +134,9 @@ class SingleLessonView(APIView):
     template_name = 'singlelesson.html'
     parser_classes = (MultiPartParser,)
     def get(self, request, *args, **kwargs):
-        lesson = Lesson.objects.get(id=self.kwargs['lessonID'])
-        player_progress = apps.get_model('stats','UserStat').objects.get(user=self.request.user).progress
-        serializer = SubmitSerializer()
-        if(lesson.number > player_progress):
-            return Response({'details': 'Unauthorized for this lesson'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'lesson': lesson, 'base_url':Base_url, 'submitSerializer':serializer}, template_name='singlelesson.html')
+        return Response(template_name='singlelesson.html')
 
-
+''''
     def post(self, request, *args, **kwargs):
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
         wrapper = UserLessonWrapper.objects.filter(lesson = lessonInstance, user = self.request.user)
@@ -163,3 +163,4 @@ class SingleLessonView(APIView):
         serializer = SubmitSerializer(data=submit)
         submit.save()
         return self.get(request, args, kwargs)
+'''

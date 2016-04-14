@@ -1,0 +1,28 @@
+{% load rest_framework %}
+
+<html><body>
+<a href="../">back</a>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<form method="POST" id = "loginForm">
+    {% csrf_token %}
+  <input type = "text" placeholder="username" name = "username">
+  <input type = "password" placeholder="password" name = "password">
+  <input type="submit" value="Save">
+</form>
+<script>
+    $(document).ready(function() {
+      $("#loginForm").submit(function() {
+        $.ajax({
+          type: "POST",
+          url: "./login",
+          data: $(this).serialize(),
+          success: function(e) {
+              localStorage.setItem("token", e['token'])
+              window.location.href = e['redirect_url']
+              return false
+          }
+        })
+      })
+    })
+</script>
+</body></html>

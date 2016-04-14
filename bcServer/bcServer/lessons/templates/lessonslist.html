@@ -1,9 +1,53 @@
 <html><body>
-<p id="demo"></p>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<p id = "loggedInAs">logged in as </p>
 <h1>Lessons</h1>
-<ul>
-    {% for lesson in lessons %}
-    <li><a href="/lessons/{{lesson.id}}">{{lesson}}</a></li>
-    {% endfor %}
+<ul id="links">
 </ul>
+
+<script>
+
+function set_cookie(name, value) {
+  document.cookie = name +'='+ value +'; Path=/;';
+}
+function delete_cookie(name) {
+  document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+var user
+$(document).ready(function(){
+//  alert('ready')
+  console.log(window.location.href)
+  set_cookie('sessionid',localStorage.getItem('token'));
+  $.ajax({
+           url: "../user",
+           type: "GET",
+           headers: {'Authorization':'Token '+localStorage.getItem('token')},
+           success: function(data) {
+             console.log(JSON.stringify(data));
+             user = JSON.stringify(data)
+             console.log(data['username'])
+             document.getElementById("loggedInAs").innerHTML = "logged in as "+ data['username']
+           },
+        });
+
+  $.ajax({
+           url: "../api/lessonslist",
+           type: "GET",
+           headers: {'Authorization':'Token '+localStorage.getItem('token')},
+           success: function(data) {
+             var len = data.length
+             linkTarget = document.getElementById("links")
+             var linkArray = []
+             for (var i = 0; i<len; i++) {
+               linkArray.push('<li><a href = "./'+data[i].id+'">'+data[i].number+'-'+data[i].name+'</a></li>')
+             }
+             for (i=0; i<len; i++){
+               linkTarget.innerHTML += linkArray[i];
+             }
+          },
+        });
+
+})
+</script>
 </body></html>

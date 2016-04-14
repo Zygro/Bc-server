@@ -1,13 +1,84 @@
-{% load rest_framework %}
-
 <html><body>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 <a href="../">back</a>
-<h1>Lesson {{lesson.number}}: {{lesson.name}}</h1>
-<p>{{lesson.problem}}</p>
+<h1 id="title"></h1>
+<p></p>
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-   {% render_form submitSerializer %}
-  <input type="submit" value="Save">
+
+</head>
+<body>
+
+<form id="upload" method="post"
+enctype="multipart/form-data">
+<label for="file">Filename:</label>
+<input type="file" name="submittedFile" id="file" />
+<br />
+<input type="button" name="submit" value="Submit" onclick="uploadFile();" />
 </form>
+<script>
+$(document).ready(function(){
+//  alert('ready')
+  var id = window.location.pathname.split('/')[2]
+  var getLocation = function(href) {
+      var l = document.createElement("a");
+      l.href = href;
+      return l;
+  };
+  var submitform = $("#submitForm")
+  console.log(id)
+  $.ajax({
+       url: "../../api/lesson/"+id,
+       type: "GET",
+       headers: {'Authorization':'Token '+localStorage.getItem('token')},
+       success: function(data) {
+         console.log(JSON.stringify(data));
+         document.getElementById("title").innerHTML = "Lesson "+data['name']
+         //document.getElementById("loggedInAs").innerHTML = "logged in as "+ data['username']
+       },
+    });
+  /*submitform.submit(function(e) {
+    e.preventDefault()
+    console.log('serialized '+submitform.serialize())
+    $.ajax({
+      type: "POST",
+      headers: {'Authorization':'Token '+localStorage.getItem('token')},
+      data: submitform.serialize(),
+      success: function(e) {
+          console.log(JSON.stringify(e))
+          return false
+      },
+      error: function(e) {
+      }
+    })
+  })*/
+})
+function uploadFile(){
+    var id = window.location.pathname.split('/')[2]
+    var xmlhttp;
+    if (window.XMLHttpRequest)
+    {// code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp=new XMLHttpRequest();
+    }
+    else
+    {// code for IE6, IE5
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    var formElement = document.getElementById("upload");
+    var formData= new FormData(formElement);
+    xmlhttp.open("post","../../api/"+id+"/submitfile/",false);
+    xmlhttp.setRequestHeader("Authorization", 'Token '+localStorage.getItem('token'))
+    xmlhttp.send(formData);
+    var counter = 0;
+    while (xmlhttp.readyState != 4){
+        counter = counter + 1;
+    }
+    var errorCondition =  xmlhttp.responseText;
+    if(errorCondition == "success"){
+        alert("File uploaded successfully");
+    }
+    else{
+        alert("Error: "+errorCondition);
+    }
+}
+</script>
 </body></html>

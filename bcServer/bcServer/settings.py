@@ -29,7 +29,6 @@ ALLOWED_HOSTS = []
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     )
 }
@@ -66,7 +65,7 @@ ROOT_URLCONF = 'bcServer.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['bcServer.lessons.templates'],
+        'DIRS': ['bcServer.lessons.templates', 'bcServer.user.templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

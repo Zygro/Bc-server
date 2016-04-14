@@ -5,54 +5,23 @@ from django.apps import apps
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from rest_framework import viewsets, permissions, status, mixins, serializers, validators
+
+from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
+from rest_framework import renderers
+
+from .serializers import UserSerializer, LoginSerializer
 # Create your views here.
 
-class UserSerializer(serializers.ModelSerializer):
-    email = serializers.CharField (
-        max_length=50,
-        validators = [UniqueValidator(queryset=User.objects.all())]
-    )
-    class Meta:
-        model = get_user_model()
-        fields = (
-            'id', 'username','email', 'first_name', 'last_name'
-        )
-        read_only_fields = ('id')
-
-
-    def create(self, validated_data):
-            user = User.objects.create(
-                username=validated_data['username'],
-                email=validated_data['email'],
-            )
-
-            user.set_password(validated_data['password'])
-            user.save()
-            apps.get_model('stats', 'UserStat')(user=user).save()
-            return user
-'''
-@api_view(['POST'])
-def register(request):
-    VALID_USER_FIELDS = [f.name for f in get_user_model()._meta.fields]
-    serialized = UserSerializer(data=request.data)
-    if serialized.is_valid():
-        user_data = {field: data for (field, data) in request.data.items() if field in VALID_USER_FIELDS}
-
-        user = get_user_model().objects.create_user(
-            **user_data
-        )
-        return Response(UserSerializer(instance=user).data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(serialized._errors, status=status.HTTP_400_BAD_REQUEST)
-'''
 class UserViewSet(
     viewsets.GenericViewSet,
-    mixins.CreateModelMixin
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
 ):
+    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer, renderers.BrowsableAPIRenderer)
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
@@ -68,6 +37,7 @@ class UserViewSet(
             username=request.data['username'],
             password=request.data['password'],
         )
+        print(User)
         if user is None:
             return self._fail_login_response('Incorrect credentials.')
         return self._successful_login_response(user)
@@ -89,9 +59,18 @@ class UserViewSet(
             else: user.username = request.data['username']
         user.save()
         return Response(self.get_serializer(request.user).data)
+
+    def loginView(self, request, *args, **kwargs):
+        loginSerializer = LoginSerializer()
+        return Response({'loginSerializer': loginSerializer}, template_name='login.html')
+
+
     def _successful_login_response(self, user):
         token = Token.objects.get_or_create(user=user)[0]
-        return Response({'token': token.key})
+        loginSerializer = LoginSerializer()
+        print(token)
+        return Response({'token':token.key, 'redirect_url': '/lessons/'}, template_name='login.html')
 
     def _fail_login_response(self, detail='BAD REQUEST'):
-        return Response({'detail': detail}, status=status.HTTP_400_BAD_REQUEST)
+        loginSerializer = LoginSerializer()
+        return Response({'loginSerializer': loginSerializer,'detail': detail}, status=status.HTTP_400_BAD_REQUEST, template_name='login.html')
