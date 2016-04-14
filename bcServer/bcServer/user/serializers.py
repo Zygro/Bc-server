@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.models import User
 from rest_framework import serializers, validators
+from .models import UserLessonWrapper
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.CharField (
@@ -39,3 +40,7 @@ class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ('username', 'password')
+
+class WrapperSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserLessonWrapper

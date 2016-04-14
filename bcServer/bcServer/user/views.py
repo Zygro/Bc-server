@@ -13,7 +13,9 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import renderers
 
-from .serializers import UserSerializer, LoginSerializer
+from .serializers import UserSerializer, LoginSerializer, WrapperSerializer
+
+from .models import UserLessonWrapper
 # Create your views here.
 
 class UserViewSet(
@@ -74,3 +76,10 @@ class UserViewSet(
     def _fail_login_response(self, detail='BAD REQUEST'):
         loginSerializer = LoginSerializer()
         return Response({'loginSerializer': loginSerializer,'detail': detail}, status=status.HTTP_400_BAD_REQUEST, template_name='login.html')
+
+class WrapperViewSet(viewsets.GenericViewSet, mixins.ListModelMixin,):
+    serializer_class = WrapperSerializer
+    def get_queryset(self):
+        userID = self.request.user
+        lessonID = self.kwargs['lessonID']
+        return UserLessonWrapper.objects.filter(lesson=lessonID, user=userID)

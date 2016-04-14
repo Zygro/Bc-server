@@ -9,3 +9,5 @@ class UserLessonWrapper(models.Model):
     hints_used = models.IntegerField(default = 0)
     def __str__ (self):
         return self.lesson.name + ' ' + self.user.email
+    class Meta:
+        unique_together=('user','lesson')

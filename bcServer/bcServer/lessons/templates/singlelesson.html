@@ -1,19 +1,21 @@
 <html><body>
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-<a href="../">back</a>
-<h1 id="title"></h1>
-<p></p>
-
 
 </head>
 <body>
+<a href="../">back</a>
+<h1 id="title"></h1>
+<p></p>
+<form id="upload" method="post" enctype="multipart/form-data">
+  <label for="file">Filename:</label>
+  <input type="file" name="submittedFile" id="file" />
+  <br />
+  <input type="button" name="submit" value="Submit" onclick="uploadFile();" />
+</form>
 
-<form id="upload" method="post"
-enctype="multipart/form-data">
-<label for="file">Filename:</label>
-<input type="file" name="submittedFile" id="file" />
-<br />
-<input type="button" name="submit" value="Submit" onclick="uploadFile();" />
+<form id = "ratingForm" method = "post" >
+  <div id = "rating">
+  </div>
 </form>
 <script>
 $(document).ready(function(){
@@ -24,10 +26,9 @@ $(document).ready(function(){
       l.href = href;
       return l;
   };
-  var submitform = $("#submitForm")
   console.log(id)
   $.ajax({
-       url: "../../api/lesson/"+id,
+       url: "../../api/lesson/"+id+"/",
        type: "GET",
        headers: {'Authorization':'Token '+localStorage.getItem('token')},
        success: function(data) {
@@ -36,21 +37,33 @@ $(document).ready(function(){
          //document.getElementById("loggedInAs").innerHTML = "logged in as "+ data['username']
        },
     });
-  /*submitform.submit(function(e) {
-    e.preventDefault()
-    console.log('serialized '+submitform.serialize())
-    $.ajax({
-      type: "POST",
-      headers: {'Authorization':'Token '+localStorage.getItem('token')},
-      data: submitform.serialize(),
-      success: function(e) {
-          console.log(JSON.stringify(e))
-          return false
-      },
-      error: function(e) {
-      }
+  $.ajax({
+       url: "../../user/api/"+id+"/wrapper/",
+       type: "GET",
+       headers: {'Authorization':'Token '+localStorage.getItem('token')},
+       success: function(data) {
+         if(data[0]['completed'])
+            document.getElementById("rating").innerHTML = document.getElementById("ratingFormHTML").innerHTML
+       },
+    });
+
+    var ratingForm = $("#ratingForm")
+    ratingForm.submit(function(e) {
+      e.preventDefault()
+      console.log('serialized '+ratingForm.serialize())
+      $.ajax({
+        type: "POST",
+        url: "../../stats/"+id+"/rating/",
+        headers: {'Authorization':'Token '+localStorage.getItem('token')},
+        data: ratingForm.serialize(),
+        success: function(e) {
+            console.log(JSON.stringify(e))
+            return false
+        },
+        error: function(e) {
+        }
+      })
     })
-  })*/
 })
 function uploadFile(){
     var id = window.location.pathname.split('/')[2]
@@ -72,13 +85,18 @@ function uploadFile(){
     while (xmlhttp.readyState != 4){
         counter = counter + 1;
     }
-    var errorCondition =  xmlhttp.responseText;
-    if(errorCondition == "success"){
-        alert("File uploaded successfully");
-    }
-    else{
-        alert("Error: "+errorCondition);
-    }
+    var response =  xmlhttp.responseText;
+    console.log(response)
+    location.reload()
 }
+</script>
+
+<script id = "ratingFormHTML" language="text">
+  <h5>Rate the lesson!</h5>
+    <label for="fun">Fun</label>
+    <input type="number" name="fun" min="1" max="5" id = "fun"> <br>
+    <label for="difficulty">Difficulty</label>
+    <input type="number" name="difficulty" min="1" max="5" id = "difficulty"> <br>
+    <input type="submit" value="Post rating">
 </script>
 </body></html>

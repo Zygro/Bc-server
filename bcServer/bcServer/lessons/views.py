@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import FileUploadParser, JSONParser, MultiPartParser, FormParser
 
 from .forms import SubmitForm
-from .serializers import CommentSerializer, LessonSerializer, SubmitSerializer, HintSerializer
+from .serializers import CommentSerializer, LessonSerializer, SubmitSerializer, HintSerializer, SingleLessonSerializer
 from .models import Comment, Lesson, Submit, Hint
 from bcServer.user.models import UserLessonWrapper
 from .helpers import compare_files
@@ -55,9 +55,16 @@ class LessonViewSet(
     def singleLesson(self, request, *args, **kwargs):
         player_progress = apps.get_model('stats','UserStat').objects.get(user=self.request.user).progress
         lesson = Lesson.objects.get(id=self.kwargs['lessonID'])
+        wrapper = UserLessonWrapper.objects.filter(lesson = lesson, user = self.request.user)
+        if len(wrapper) == 0:
+            w = UserLessonWrapper (
+                lesson = lesson,
+                user = self.request.user
+            )
+            w.save()
         if lesson.number > player_progress:
             return Respone(status=status.HTTP_400_BAD_REQUEST)
-        serializer = LessonSerializer(lesson)
+        serializer = SingleLessonSerializer(lesson)
         return Response(serializer.data)
 
 
@@ -73,13 +80,6 @@ class SubmitViewSet(
     def perform_create(self, serializer):
         print('create?')
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
-        wrapper = UserLessonWrapper.objects.filter(lesson = lessonInstance, user = self.request.user)
-        if len(wrapper) == 0:
-            w = UserLessonWrapper (
-                lesson = lessonInstance,
-                user = self.request.user
-            )
-            w.save()
         res = compare_files(lessonInstance.correct_solution, self.request.POST.get('submittedFile'))
         if res:
             wrapper = UserLessonWrapper.objects.get(lesson = lessonInstance, user = self.request.user)
