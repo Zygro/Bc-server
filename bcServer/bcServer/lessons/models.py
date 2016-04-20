@@ -54,7 +54,7 @@ class Submit(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     lesson = models.ForeignKey('Lesson')
     submittedFile = models.FileField(upload_to='submits')
-    result = models.BooleanField(default=False)
+    result = models.CharField(max_length = 200)
     def __str__(self):
         return self.user.username + ' ' + self.lesson.name
 class Comment(models.Model):

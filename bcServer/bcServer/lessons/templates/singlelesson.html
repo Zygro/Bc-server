@@ -4,19 +4,32 @@
 </head>
 <body>
 <a href="../">back</a>
+<input type="button" value="logout" onclick="logout()"/>
 <h1 id="title"></h1>
-<p></p>
+<p id = "problem"></p>
+<ul id="hints">
+</ul>
+<form id="newHintForm" method="get">
+  <input type="submit" value="Get new hint"/>
+</form>
 <form id="upload" method="post" enctype="multipart/form-data">
-  <label for="file">Filename:</label>
   <input type="file" name="submittedFile" id="file" />
   <br />
   <input type="button" name="submit" value="Submit" onclick="uploadFile();" />
 </form>
-
+<div id= "submits">
+</div>
 <form id = "ratingForm" method = "post" >
   <div id = "rating">
   </div>
 </form>
+<form id="commentForm" method="post">
+  <h3> Leave a comment:</h3>
+  <textarea name="text" rows="5" cols="50"></textarea> <br>
+  <input type="submit" value="Send"/>
+</form>
+<Table rules="rows" border="1"style="width:50%" id = "discussion">
+</div>
 <script>
 $(document).ready(function(){
 //  alert('ready')
@@ -26,7 +39,6 @@ $(document).ready(function(){
       l.href = href;
       return l;
   };
-  console.log(id)
   $.ajax({
        url: "../../api/lesson/"+id+"/",
        type: "GET",
@@ -34,37 +46,151 @@ $(document).ready(function(){
        success: function(data) {
          console.log(JSON.stringify(data));
          document.getElementById("title").innerHTML = "Lesson "+data['name']
-         //document.getElementById("loggedInAs").innerHTML = "logged in as "+ data['username']
+         document.getElementById("problem").innerHTML = "Lesson "+data['problem']
+        //document.getElementById("loggedInAs").innerHTML = "logged in as "+ data['username']
        },
+       error: function(data) {
+         if (data.status==401) {
+           window.location.replace("../../user/login/")
+         }
+       }
+    });
+  $.ajax({
+       url: "../../api/discussion/"+id+"",
+       type: "GET",
+       headers: {'Authorization':'Token '+localStorage.getItem('token')},
+       success: function(data) {
+         console.log(JSON.stringify(data));
+         var discussion = document.getElementById("discussion")
+         for (var i = 0; i < data.length; i++){
+           discussion.innerHTML += "<tr><th align=\"left\"><h3>"+ data[i].username +"</h3><h5>"+data[i].text+"</h5></th></tr>"
+         }
+       },
+       error: function(data) {
+         if (data.status==401) {
+           window.location.replace("../../user/login/")
+         }
+       }
     });
   $.ajax({
        url: "../../user/api/"+id+"/wrapper/",
        type: "GET",
        headers: {'Authorization':'Token '+localStorage.getItem('token')},
        success: function(data) {
-         if(data[0]['completed'])
+         if(data[0]['completed']) {
             document.getElementById("rating").innerHTML = document.getElementById("ratingFormHTML").innerHTML
+          }
        },
+       error: function(data) {
+         if (data.status==401) {
+           window.location.replace("../../user/login/")
+         }
+       }
     });
+  $.ajax({
+       url: "../../api/hints/"+id,
+       type: "GET",
+       headers: {'Authorization':'Token '+localStorage.getItem('token')},
+       success: function(data) {
+         console.log(JSON.stringify(data))
+         hintTarget = document.getElementById("hints")
+         var hintArray = []
+         for(var i = 0; i < data.length; i++) {
+           hintTarget.innerHTML += "<li>"+data[i].text+"</li>"
+         }
+       },
+       error: function(data) {
+         if (data.status==401) {
+           window.location.replace("../../user/login/")
+         }
+       }
+    });
+  $.ajax({
+       url: "../../api/submits/"+id,
+       type: "GET",
+       headers: {'Authorization':'Token '+localStorage.getItem('token')},
+       success: function(data) {
+         submitTarget = document.getElementById("submits")
+         for(var i = data.length-1; i >= 0; i--) {
+           submitTarget.innerHTML += "<li>"+data[i].result+"</li>"
+         }
+       },
+       error: function(data) {
+         if (data.status==401) {
+           window.location.replace("../../user/login/")
+         }
+       }
+    });
+  $("#newHintForm").submit(function (e) {
+    e.preventDefault()
+    $.ajax({
+       url: "../../api/newhint/"+id,
+       type: "GET",
+       headers: {'Authorization':'Token '+localStorage.getItem('token')},
+       success: function(data) {
 
-    var ratingForm = $("#ratingForm")
-    ratingForm.submit(function(e) {
-      e.preventDefault()
-      console.log('serialized '+ratingForm.serialize())
-      $.ajax({
-        type: "POST",
-        url: "../../stats/"+id+"/rating/",
-        headers: {'Authorization':'Token '+localStorage.getItem('token')},
-        data: ratingForm.serialize(),
-        success: function(e) {
-            console.log(JSON.stringify(e))
-            return false
-        },
-        error: function(e) {
-        }
-      })
+         console.log(JSON.stringify(data))
+         hintTarget = document.getElementById("hints")
+         hintTarget.innerHTML = ""
+         var hintArray = []
+         for(var i = 0; i < data.length; i++) {
+           hintTarget.innerHTML += "<li>"+data[i].text+"</li>"
+         }
+       },
+       error: function(data) {
+         if (data.status==401) {
+           window.location.replace("../../user/login/")
+         }
+       }
+     })
+    });
+  $("#commentForm").submit(function(e) {
+    e.preventDefault()
+    console.log('comment')
+    $.ajax({
+      type: "POST",
+      url: "../../api/discussion/"+id+"/",
+      headers: {'Authorization':'Token '+localStorage.getItem('token')},
+      data : $("#commentForm").serialize(),
+      success: function() {
+        location.reload()
+      }
     })
+
+
+  })
+  var ratingForm = $("#ratingForm")
+  ratingForm.submit(function(e) {
+    e.preventDefault()
+    console.log('serialized '+ratingForm.serialize())
+    $.ajax({
+      type: "POST",
+      url: "../../stats/"+id+"/rating/",
+      headers: {'Authorization':'Token '+localStorage.getItem('token')},
+      data: ratingForm.serialize(),
+      success: function(e) {
+          console.log(JSON.stringify(e))
+          return false
+      },
+      error: function(data) {
+        if (data.status==401) {
+          window.location.replace("../../user/login/")
+        }
+      }
+    })
+  })
 })
+
+function logout(){
+  $.ajax({
+    type: "GET",
+    url: "../../user/logout",
+    headers: {'Authorization':'Token '+localStorage.getItem('token')},
+  })
+  delete localStorage.removeItem('token')
+  window.location.href="../../user/login/"
+}
+
 function uploadFile(){
     var id = window.location.pathname.split('/')[2]
     var xmlhttp;

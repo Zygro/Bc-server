@@ -16,16 +16,15 @@ class SubmitSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'user','lesson', 'result')
 
 class CommentSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only = True)
     class Meta:
         model=Comment
-        fields = ('id', 'lesson', 'text','user')
+        fields = ('id', 'lesson', 'text','user','username')
         read_only_fields = ('id', 'user','lesson')
-
 class HintSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hint
         fields = ('id','lesson','text')
-
 class SingleLessonSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'number','pub_date', 'optional','name', 'problem', 'inputs')

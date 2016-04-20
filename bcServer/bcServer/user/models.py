@@ -8,6 +8,6 @@ class UserLessonWrapper(models.Model):
     completed = models.BooleanField(default = False)
     hints_used = models.IntegerField(default = 0)
     def __str__ (self):
-        return self.lesson.name + ' ' + self.user.email
+        return self.lesson.name + ' ' + self.user.username
     class Meta:
         unique_together=('user','lesson')

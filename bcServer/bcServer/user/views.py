@@ -44,6 +44,11 @@ class UserViewSet(
             return self._fail_login_response('Incorrect credentials.')
         return self._successful_login_response(user)
 
+    def logout(self, request, *args, **kwargs):
+        token = Token.objects.get(user=self.request.user)
+        token.delete()
+        return Response({'redirect_url': '/user/login/'})
+
     def update_profile(self, request, *args, **kwargs):
         user = self.request.user
         print (request.data)
@@ -65,6 +70,9 @@ class UserViewSet(
     def loginView(self, request, *args, **kwargs):
         loginSerializer = LoginSerializer()
         return Response({'loginSerializer': loginSerializer}, template_name='login.html')
+
+    def displayProfile(self, request, *args, **kwargs):
+        return Response(template_name='profile.html')
 
 
     def _successful_login_response(self, user):

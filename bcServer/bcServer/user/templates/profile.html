@@ -1,0 +1,40 @@
+<html><body>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<table>
+  <a href="../lessons">Lessons</a>
+  <tr>
+    <td> <h3> Username: </h3> </td>
+    <td> <h4 id="username"> </h4> </td>
+  </tr>
+  <tr>
+    <td> <h3> First name: </h3> </td>
+    <td> <h4 id="first_name"> </h4> </td>
+  </tr>
+  <tr>
+    <td> <h3> Last name: </h3> </td>
+    <td> <h4 id="last_name"> </h4> </td>
+  </tr>
+  <tr>
+    <td> <h3> Email: </h3> </td>
+    <td> <h4 id="email"> </h4> </td>
+  </tr>
+</table>
+
+<script>
+  $(document).ready(function() {
+    $.ajax({
+      type: "GET",
+      url: "./api/profile",
+      headers: {'Authorization':'Token '+localStorage.getItem('token')},
+      success: function(data) {
+        $.each(data, function(key, value){
+          console.log(key+' '+value)
+          if(key!='id')
+            document.getElementById(key).innerHTML=value
+        });
+      }
+
+    })
+  })
+</script>
+</body></html>

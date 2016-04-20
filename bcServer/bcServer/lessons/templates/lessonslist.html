@@ -1,12 +1,22 @@
 <html><body>
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-<p id = "loggedInAs">logged in as </p>
+<p ><h5 id = "loggedInAs">logged in as </h5> <a href="../user/profile">Profile</a></p>
+<input type="button" value="logout" onclick="logout()"/>
 <h1>Lessons</h1>
 <ul id="links">
 </ul>
 
 <script>
 
+function logout(){
+  $.ajax({
+    type: "GET",
+    url: "../../user/logout",
+    headers: {'Authorization':'Token '+localStorage.getItem('token')},
+  })
+  delete localStorage.removeItem('token')
+  window.location.href="../../user/login/"
+}
 function set_cookie(name, value) {
   document.cookie = name +'='+ value +'; Path=/;';
 }
@@ -20,7 +30,7 @@ $(document).ready(function(){
   console.log(window.location.href)
   set_cookie('sessionid',localStorage.getItem('token'));
   $.ajax({
-           url: "../user",
+           url: "../user/api/profile",
            type: "GET",
            headers: {'Authorization':'Token '+localStorage.getItem('token')},
            success: function(data) {
@@ -29,6 +39,11 @@ $(document).ready(function(){
              console.log(data['username'])
              document.getElementById("loggedInAs").innerHTML = "logged in as "+ data['username']
            },
+           error: function(data) {
+             if (data.status==401) {
+               window.location.replace("../../user/login/")
+             }
+           }
         });
 
   $.ajax({
@@ -40,12 +55,14 @@ $(document).ready(function(){
              linkTarget = document.getElementById("links")
              var linkArray = []
              for (var i = 0; i<len; i++) {
-               linkArray.push('<li><a href = "./'+data[i].id+'">'+data[i].number+'-'+data[i].name+'</a></li>')
+              linkTarget.innerHTML += '<li><a href = "./'+data[i].id+'">'+data[i].number+'-'+data[i].name+'</a></li>'
              }
-             for (i=0; i<len; i++){
-               linkTarget.innerHTML += linkArray[i];
+           },
+           error: function(data) {
+             if (data.status==401) {
+               window.location.replace("../../user/login/")
              }
-          },
+           }
         });
 
 })

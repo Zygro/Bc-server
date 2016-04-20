@@ -31,6 +31,7 @@ class CommentViewSet(
     serializer_class = CommentSerializer
 
     def perform_create(self, serializer):
+        print('create')
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
         serializer.save(user=self.request.user, lesson = lessonInstance)
 
@@ -78,10 +79,9 @@ class SubmitViewSet(
     serializer_class = SubmitSerializer
 
     def perform_create(self, serializer):
-        print('create?')
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
         res = compare_files(lessonInstance.correct_solution, self.request.POST.get('submittedFile'))
-        if res:
+        if res=="OK":
             wrapper = UserLessonWrapper.objects.get(lesson = lessonInstance, user = self.request.user)
             print(wrapper.completed)
             if not(wrapper.completed):
@@ -92,7 +92,6 @@ class SubmitViewSet(
                     userStat.progress += 1
                     userStat.save()
         serializer.save(user = self.request.user, lesson = lessonInstance, result = res)
-
 
     def get_queryset(self):
         userID = self.request.user
@@ -135,32 +134,3 @@ class SingleLessonView(APIView):
     parser_classes = (MultiPartParser,)
     def get(self, request, *args, **kwargs):
         return Response(template_name='singlelesson.html')
-
-''''
-    def post(self, request, *args, **kwargs):
-        lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
-        wrapper = UserLessonWrapper.objects.filter(lesson = lessonInstance, user = self.request.user)
-        submit = Submit(lesson=lessonInstance, user=self.request.user, submittedFile = request.FILES['submittedFile'])
-        if len(wrapper) == 0:
-            w = UserLessonWrapper (
-                lesson = lessonInstance,
-                user = self.request.user
-            )
-            w.save()
-        res = compare_files(lessonInstance.correct_solution, request.FILES['submittedFile'])
-        submit.result=res
-        if res:
-            wrapper = UserLessonWrapper.objects.get(lesson = lessonInstance, user = self.request.user)
-            print(wrapper.completed)
-            if not(wrapper.completed):
-                wrapper.completed=True
-                wrapper.save()
-                if not(lessonInstance.optional):
-                    userStat = apps.get_model('stats','UserStat').objects.get(user = self.request.user)
-                    userStat.progress += 1
-                    userStat.save()
-
-        serializer = SubmitSerializer(data=submit)
-        submit.save()
-        return self.get(request, args, kwargs)
-'''
