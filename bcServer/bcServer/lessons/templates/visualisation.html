@@ -1,25 +1,44 @@
 <!DOCTYPE html>
 <html>
 <body>
-
+function f(<input id="arguments" type="text" />)<br>
 <textarea id="input" cols="50" rows="20"></textarea>
 <button onclick="ev()">evaluate</button>
 
 <script>
-function ev() {
-    var f = document.getElementById("input").value
+  var code
+  var arrayPairs
+  var arguments
+  function ev() {
+    var argtext=document.getElementById("arguments").value
+    arrayPairs = argtext.split(",")
+    for (var i = 0; i<arrayPairs.length;i++) {
+      arrayPairs[i] = arrayPairs[i].split("=")
+    }
+    arguments = ""
+    for (var i = 0; i<arrayPairs.length;i++) {
+      arguments += arrayPairs[i][0]
+      if(i!=arrayPairs.length-1) arguments += ", "
+    }
+
+    code = document.getElementById("input").value
+    var header = "function f ("+arguments+") {"
     //console.log(f)
     returnregexp = /return (.*);/g
-    functionregexp = /function (.*)\((.*?)\)/
-    var f2 = f.replace(returnregexp, function(match, contents, offset,s) {
+    code = header+code+"}"
+    var f2 = code.replace(returnregexp, function(match, contents, offset,s) {
       console.log("matched "+match)
       return "var to_return = "+contents+"; console.log(to_return);"+match.replace(contents,"to_return")
     })
     //console.log(f.match(functionregexp)[0], f.match(functionregexp[1]))
     console.log(f2)
     eval(f2)
-    run()
-}
+    parameters = []
+    for (var i = 0; i<arrayPairs.length;i++) {
+      parameters.push(arrayPairs[i][1])
+    }
+    f.apply(self, parameters)
+  }
 </script>
 
 </body>
