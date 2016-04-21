@@ -80,7 +80,9 @@ class SubmitViewSet(
 
     def perform_create(self, serializer):
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
-        res = compare_files(lessonInstance.correct_solution, self.request.POST.get('submittedFile'))
+        print(self.request.FILES['submittedFile'])
+        res = compare_files(lessonInstance.correct_solution, self.request.FILES['submittedFile'])
+        print('mam result')
         if res=="OK":
             wrapper = UserLessonWrapper.objects.get(lesson = lessonInstance, user = self.request.user)
             print(wrapper.completed)
