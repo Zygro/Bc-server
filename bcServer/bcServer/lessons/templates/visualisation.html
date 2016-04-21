@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<textarea id="input" cols="50" rows="20"></textarea>
+<button onclick="ev()">evaluate</button>
+
+<script>
+function ev() {
+    var f = document.getElementById("input").value
+    console.log(f)
+    regexp = /return(.*);/g
+    console.log(f.match(regexp))
+    var f2 = f.replace(regexp, function(match, contents, offset,s) {
+      return "console.log("+contents+");"+match
+    })
+    console.log(f2)
+    eval(f2)
+    run()
+}
+</script>
+
+</body>
+</html>
