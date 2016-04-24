@@ -3,42 +3,166 @@
 <body>
 function f(<input id="arguments" type="text" />)<br>
 <textarea id="input" cols="50" rows="20"></textarea>
-<button onclick="ev()">evaluate</button>
-
+<button onclick="ev()">evaluate</button><br>
+<button onclick="nextStep()"> next step </button><br>
+<canvas id="visualiser" width="1500" height="700" style="border:1px solid #000000;">no html5</canvas>
 <script>
+  const maxX = document.getElementById("visualiser").width
+  const maxY = document.getElementById("visualiser").height
+  var modFunction
+  var originalFunction
+  var f
   var code
   var arrayPairs
   var arguments
-  function ev() {
-    var argtext=document.getElementById("arguments").value
-    arrayPairs = argtext.split(",")
-    for (var i = 0; i<arrayPairs.length;i++) {
-      arrayPairs[i] = arrayPairs[i].split("=")
+  var parameters
+  var nodesList = []
+  var edgesList = []
+  var stack = []
+  var maxDepth = 0
+  var currentNode = 0
+  const visualiser = document.getElementById("visualiser")
+  const context = visualiser.getContext("2d");
+  var modFunction = function() {
+    var newNode = {
+      id: 0,
+      x: 0,
+      y: 0,
+      parent: -1,
+      args: Array.from(arguments),
+      result: undefined,
+      depth: 0,
+      children:[],
     }
-    arguments = ""
-    for (var i = 0; i<arrayPairs.length;i++) {
-      arguments += arrayPairs[i][0]
-      if(i!=arrayPairs.length-1) arguments += ", "
+    newNode.id = nodesList.length
+    if (stack.length > 0) {
+      newNode.parent = nodesList[stack[stack.length-1]]
+      nodesList[stack[stack.length-1]].children.push(newNode.id)
     }
-
-    code = document.getElementById("input").value
-    var header = "function f ("+arguments+") {"
-    //console.log(f)
-    returnregexp = /return (.*);/g
-    code = header+code+"}"
-    var f2 = code.replace(returnregexp, function(match, contents, offset,s) {
-      console.log("matched "+match)
-      return "var to_return = "+contents+"; console.log(to_return);"+match.replace(contents,"to_return")
-    })
-    //console.log(f.match(functionregexp)[0], f.match(functionregexp[1]))
-    console.log(f2)
-    eval(f2)
-    parameters = []
-    for (var i = 0; i<arrayPairs.length;i++) {
-      parameters.push(arrayPairs[i][1])
+    newNode.depth = stack.length
+    if (newNode.depth > maxDepth) {
+      maxDepth = newNode.depth
     }
-    f.apply(self, parameters)
+    stack.push(newNode.id)
+    nodesList.push(newNode)
+    var returnValue = originalFunction.apply(this, arguments)
+    newNode.result = returnValue
+    stack.pop()
+    return returnValue
   }
+
+  var calculateY = function() {
+    for (node in nodesList) {
+      var levelSize = maxY/(maxDepth+1)
+      var current = nodesList[node]
+      current.y = levelSize*current.depth+Math.round(levelSize/2)
+    }
+  }
+
+  var calculateX = function(id, left, right) {
+    var currentNode = nodesList[id]
+    var size = right-left
+    var childNumber = currentNode.children.length
+    currentNode.x = Math.round((left+right)/2)
+    for (var i = 0; i < childNumber; i++) {
+      calculateX (currentNode.children[i], left + (size/childNumber)*i, left + (size/childNumber)*(i+1))
+    }
+  }
+
+  var saveOriginalFunction = function (head, body) {
+    var fAsString = "function ("+head+") {"+code+"}"
+    originalFunction = eval("_f = "+fAsString)
+  }
+
+  var makeTree = function () {
+    console.log("original "+arguments)
+    f = modFunction
+    modFunction.apply(this, arguments)
+  }
+
+function ev() {
+  clear()
+  var argtext=document.getElementById("arguments").value
+  arrayPairs = argtext.split(",")
+  for (var i = 0; i<arrayPairs.length;i++) {
+    arrayPairs[i] = arrayPairs[i].split("=")
+  }
+  arguments = ""
+  for (var i = 0; i<arrayPairs.length;i++) {
+    if(i!=0) arguments += ", "
+    arguments += arrayPairs[i][0]
+  }
+  code = document.getElementById("input").value
+  parametersString = ""
+  parametersArray = []
+  for (var i = 0; i<arrayPairs.length;i++) {
+    if(i!=0) parametersString += ", "
+    parametersString += arrayPairs[i][1]
+    parametersArray.push(arrayPairs[i][1])
+  }
+  saveOriginalFunction(arguments, code)
+  eval("makeTree("+parametersString+")")
+  calculateX(0,0,maxX)
+  calculateY()
+  console.log(nodesList)
+  nextStep()
+}
+
+var drawCircle = function (x,y) {
+  context.fillStyle="white"
+  context.beginPath()
+  context.arc(x,y,15,0,2*Math.PI)
+  context.stroke()
+  context.fill()
+}
+var drawArgs = function (id, x, y) {
+  context.fillStyle="black"
+  context.font = "15px Arial"
+  context.textAlign="center"
+  context.fillText(nodesList[id].args.toString(),x,y)
+}
+var drawResult = function (id, x, y) {
+  context.fillStyle="green"
+  context.font = "15px Arial"
+  context.textAlign="center"
+  context.fillText(nodesList[id].result.toString(),x,y)
+
+}
+var drawNode = function(id) {
+  var x = nodesList[id].x
+  var y = nodesList[id].y
+  context.beginPath()
+  console.log(nodesList[id])
+  if(nodesList[id].parent != -1) {
+    var parent = nodesList[id].parent
+    context.moveTo(x,y)
+    context.lineTo(parent.x,parent.y)
+    context.stroke()
+    drawCircle(parent.x,parent.y)
+    drawArgs(parent.id,parent.x,parent.y)
+    drawResult(parent.id,parent.x,parent.y+30)
+  }
+  drawCircle(x,y)
+  drawArgs(id,x,y)
+  drawResult(id,x,y+30)
+  context.stroke()
+}
+
+
+var nextStep = function() {
+  drawNode(currentNode)
+  currentNode++
+}
+
+
+function clear() {
+  nodesList = []
+  edgesList = []
+  stack = []
+  maxDepth = 0
+  currentNode = 0
+  context.clearRect(0, 0, maxX, maxY)
+}
 </script>
 
 </body>
