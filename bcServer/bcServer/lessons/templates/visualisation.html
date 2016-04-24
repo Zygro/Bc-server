@@ -21,6 +21,8 @@ function f(<input id="arguments" type="text" />)<br>
   var stack = []
   var maxDepth = 0
   var currentNode = 0
+  var drawnNodes = []
+  var unresolvedNodes = []
   const visualiser = document.getElementById("visualiser")
   const context = visualiser.getContext("2d");
   var modFunction = function() {
@@ -33,10 +35,11 @@ function f(<input id="arguments" type="text" />)<br>
       result: undefined,
       depth: 0,
       children:[],
+      showResult: false,
     }
     newNode.id = nodesList.length
     if (stack.length > 0) {
-      newNode.parent = nodesList[stack[stack.length-1]]
+      newNode.parent = stack[stack.length-1]
       nodesList[stack[stack.length-1]].children.push(newNode.id)
     }
     newNode.depth = stack.length
@@ -75,7 +78,6 @@ function f(<input id="arguments" type="text" />)<br>
   }
 
   var makeTree = function () {
-    console.log("original "+arguments)
     f = modFunction
     modFunction.apply(this, arguments)
   }
@@ -104,8 +106,9 @@ function ev() {
   eval("makeTree("+parametersString+")")
   calculateX(0,0,maxX)
   calculateY()
-  console.log(nodesList)
-  nextStep()
+  unresolvedNodes.push(0)
+  drawnNodes.push(0)
+  redraw()
 }
 
 var drawCircle = function (x,y) {
@@ -121,20 +124,33 @@ var drawArgs = function (id, x, y) {
   context.textAlign="center"
   context.fillText(nodesList[id].args.toString(),x,y)
 }
+
+var checkIfResolved = function (id) {
+  var children = nodesList[id].children
+  nodesList[id].showResult=true
+  for(child in children) {
+    console.log(id+" "+children[child])
+    if (nodesList[children[child]].showResult == false) {
+      nodesList[id].showResult = false
+    }
+  }
+  return nodesList[id].showResult
+}
+
 var drawResult = function (id, x, y) {
   context.fillStyle="green"
   context.font = "15px Arial"
   context.textAlign="center"
-  context.fillText(nodesList[id].result.toString(),x,y)
-
+  //console.log(nodesList[id])
+  if(nodesList[id].showResult)
+    context.fillText(nodesList[id].result.toString(),x,y)
 }
 var drawNode = function(id) {
   var x = nodesList[id].x
   var y = nodesList[id].y
   context.beginPath()
-  console.log(nodesList[id])
   if(nodesList[id].parent != -1) {
-    var parent = nodesList[id].parent
+    var parent = nodesList[nodesList[id].parent]
     context.moveTo(x,y)
     context.lineTo(parent.x,parent.y)
     context.stroke()
@@ -148,10 +164,25 @@ var drawNode = function(id) {
   context.stroke()
 }
 
+var redraw = function() {
+  for (i in drawnNodes) {
+    drawNode(i)
+  }
+}
 
 var nextStep = function() {
-  drawNode(currentNode)
-  currentNode++
+  var lastUnresolved = nodesList[unresolvedNodes[unresolvedNodes.length-1]]
+  checkIfResolved(lastUnresolved.id)
+  if (lastUnresolved.showResult) {
+    unresolvedNodes.pop()
+  } else {
+    currentNode++
+    drawnNodes.push(nodesList[currentNode])
+    if(!checkIfResolved(currentNode)) {
+      unresolvedNodes.push(currentNode)
+    }
+  }
+  redraw()
 }
 
 
@@ -159,6 +190,8 @@ function clear() {
   nodesList = []
   edgesList = []
   stack = []
+  drawnNodes = []
+  unresolvedNodes = []
   maxDepth = 0
   currentNode = 0
   context.clearRect(0, 0, maxX, maxY)
