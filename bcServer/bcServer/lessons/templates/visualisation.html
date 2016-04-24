@@ -4,7 +4,8 @@
 function f(<input id="arguments" type="text" />)<br>
 <textarea id="input" cols="50" rows="20"></textarea>
 <button onclick="ev()">evaluate</button><br>
-<button onclick="nextStep()"> next step </button><br>
+<button onclick="nextStep()"> next step </button>
+<button onclick="stepBack()"> previous step </button><br>
 <canvas id="visualiser" width="1500" height="700" style="border:1px solid #000000;">no html5</canvas>
 <script>
   const maxX = document.getElementById("visualiser").width
@@ -18,11 +19,12 @@ function f(<input id="arguments" type="text" />)<br>
   var parameters
   var nodesList = []
   var edgesList = []
-  var stack = []
+  var nodeStack = []
   var maxDepth = 0
   var currentNode = 0
   var drawnNodes = []
   var unresolvedNodes = []
+  var stepStack = []
   const visualiser = document.getElementById("visualiser")
   const context = visualiser.getContext("2d");
   var modFunction = function() {
@@ -38,19 +40,19 @@ function f(<input id="arguments" type="text" />)<br>
       showResult: false,
     }
     newNode.id = nodesList.length
-    if (stack.length > 0) {
-      newNode.parent = stack[stack.length-1]
-      nodesList[stack[stack.length-1]].children.push(newNode.id)
+    if (nodeStack.length > 0) {
+      newNode.parent = nodeStack[nodeStack.length-1]
+      nodesList[nodeStack[nodeStack.length-1]].children.push(newNode.id)
     }
-    newNode.depth = stack.length
+    newNode.depth = nodeStack.length
     if (newNode.depth > maxDepth) {
       maxDepth = newNode.depth
     }
-    stack.push(newNode.id)
+    nodeStack.push(newNode.id)
     nodesList.push(newNode)
     var returnValue = originalFunction.apply(this, arguments)
     newNode.result = returnValue
-    stack.pop()
+    nodeStack.pop()
     return returnValue
   }
 
@@ -129,7 +131,7 @@ var checkIfResolved = function (id) {
   var children = nodesList[id].children
   nodesList[id].showResult=true
   for(child in children) {
-    console.log(id+" "+children[child])
+  //  console.log(id+" "+children[child])
     if (nodesList[children[child]].showResult == false) {
       nodesList[id].showResult = false
     }
@@ -165,17 +167,23 @@ var drawNode = function(id) {
 }
 
 var redraw = function() {
+context.clearRect(0, 0, maxX, maxY)
   for (i in drawnNodes) {
     drawNode(i)
   }
 }
 
 var nextStep = function() {
+  if (unresolvedNodes.length==0) {
+    return
+  }
   var lastUnresolved = nodesList[unresolvedNodes[unresolvedNodes.length-1]]
   checkIfResolved(lastUnresolved.id)
   if (lastUnresolved.showResult) {
+    stepStack.push(lastUnresolved.id)
     unresolvedNodes.pop()
   } else {
+    stepStack.push(-1)
     currentNode++
     drawnNodes.push(nodesList[currentNode])
     if(!checkIfResolved(currentNode)) {
@@ -185,11 +193,29 @@ var nextStep = function() {
   redraw()
 }
 
-
+var stepBack = function() {
+  if(stepStack.length == 0) {
+    return
+  }
+  var step = stepStack[stepStack.length-1]
+  if (step >= 0) {
+    unresolvedNodes.push(step)
+    nodesList[step].showResult = false
+  } else {
+    if(unresolvedNodes[unresolvedNodes.length-1] == currentNode){
+      unresolvedNodes.pop()
+    }
+    nodesList[currentNode].showResult = false
+    currentNode--
+    drawnNodes.pop()
+  }
+stepStack.pop()
+redraw()
+}
 function clear() {
   nodesList = []
   edgesList = []
-  stack = []
+  nodeStack = []
   drawnNodes = []
   unresolvedNodes = []
   maxDepth = 0
