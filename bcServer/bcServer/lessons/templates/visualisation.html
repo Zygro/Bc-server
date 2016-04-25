@@ -6,6 +6,8 @@ function f(<input id="arguments" type="text" />)<br>
 <button onclick="ev()">evaluate</button><br>
 <button onclick="nextStep()"> next step </button>
 <button onclick="stepBack()"> previous step </button><br>
+<button onclick="play()"> play </button>
+<button onclick="stop()"> pause </button><br>
 <canvas id="visualiser" width="1500" height="700" style="border:1px solid #000000;">no html5</canvas>
 <script>
   const maxX = document.getElementById("visualiser").width
@@ -111,6 +113,7 @@ function ev() {
   unresolvedNodes.push(0)
   drawnNodes.push(0)
   redraw()
+  play()
 }
 
 var drawCircle = function (x,y) {
@@ -194,6 +197,7 @@ var nextStep = function() {
 }
 
 var stepBack = function() {
+  stop()
   if(stepStack.length == 0) {
     return
   }
@@ -212,6 +216,16 @@ var stepBack = function() {
 stepStack.pop()
 redraw()
 }
+
+var interval
+
+var play = function() {
+  interval = setInterval(nextStep,1000)
+}
+
+var stop = function() {
+  clearInterval(interval)
+}
 function clear() {
   nodesList = []
   edgesList = []
@@ -221,6 +235,7 @@ function clear() {
   maxDepth = 0
   currentNode = 0
   context.clearRect(0, 0, maxX, maxY)
+  stop()
 }
 </script>
 
