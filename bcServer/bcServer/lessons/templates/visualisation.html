@@ -3,8 +3,9 @@
 <body>
 function f(<input id="arguments" type="text" />)<br>
 <textarea id="input" cols="50" rows="20"></textarea>
+<input type="checkbox" id="memoIsOn">memorize<br>
 <button onclick="ev()">evaluate</button><br>
-<button onclick="nextStep()"> next step </button>
+<button onclick="nextStepClick()"> next step </button>
 <button onclick="stepBack()"> previous step </button><br>
 <button onclick="play()"> play </button>
 <button onclick="stop()"> pause </button><br>
@@ -27,6 +28,10 @@ function f(<input id="arguments" type="text" />)<br>
   var drawnNodes = []
   var unresolvedNodes = []
   var stepStack = []
+  var memory = {}
+  var firstOccurence = {}
+  var memoIsOn
+
   const visualiser = document.getElementById("visualiser")
   const context = visualiser.getContext("2d");
   var modFunction = function() {
@@ -58,6 +63,46 @@ function f(<input id="arguments" type="text" />)<br>
     return returnValue
   }
 
+  var modFunctionMemo = function() {
+    var newNode = {
+      id: 0,
+      x: 0,
+      y: 0,
+      parent: -1,
+      args: Array.from(arguments),
+      result: undefined,
+      depth: 0,
+      children:[],
+      showResult: false,
+      fromMemory: false,
+    }
+    newNode.id = nodesList.length
+    if (nodeStack.length > 0) {
+      newNode.parent = nodeStack[nodeStack.length-1]
+      nodesList[nodeStack[nodeStack.length-1]].children.push(newNode.id)
+    }
+    newNode.depth = nodeStack.length
+    if (newNode.depth > maxDepth) {
+      maxDepth = newNode.depth
+    }
+    nodesList.push(newNode)
+    var returnValue
+    if (memory[newNode.args.toString()] != null) {
+      returnValue = memory[newNode.args.toString()]
+      newNode.fromMemory = true
+    } else {
+      nodeStack.push(newNode.id)
+      returnValue = originalFunction.apply(this, arguments)
+      memory[newNode.args.toString()] = returnValue
+      firstOccurence[newNode.args.toString()] = newNode.id
+      nodeStack.pop()
+    }
+    newNode.result = returnValue
+    console.log(memory)
+    return returnValue
+  }
+
+
   var calculateY = function() {
     for (node in nodesList) {
       var levelSize = maxY/(maxDepth+1)
@@ -82,12 +127,19 @@ function f(<input id="arguments" type="text" />)<br>
   }
 
   var makeTree = function () {
-    f = modFunction
-    modFunction.apply(this, arguments)
+    if (memoIsOn) {
+      f = modFunctionMemo
+      modFunctionMemo.apply(this, arguments)
+    } else {
+      f = modFunction
+      modFunction.apply(this, arguments)
+    }
+
   }
 
 function ev() {
   clear()
+  memoIsOn = document.getElementById("memoIsOn").checked
   var argtext=document.getElementById("arguments").value
   arrayPairs = argtext.split(",")
   for (var i = 0; i<arrayPairs.length;i++) {
@@ -176,6 +228,11 @@ context.clearRect(0, 0, maxX, maxY)
   }
 }
 
+var nextStepClick = function() {
+  stop()
+  nextStep()
+}
+
 var nextStep = function() {
   if (unresolvedNodes.length==0) {
     return
@@ -234,6 +291,8 @@ function clear() {
   unresolvedNodes = []
   maxDepth = 0
   currentNode = 0
+  memory = {}
+  firstOccurence = {}
   context.clearRect(0, 0, maxX, maxY)
   stop()
 }
