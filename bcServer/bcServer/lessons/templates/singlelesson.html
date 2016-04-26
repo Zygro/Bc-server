@@ -7,6 +7,9 @@
 <input type="button" value="logout" onclick="logout()"/>
 <h1 id="title"></h1>
 <p id = "problem"></p>
+<form id="downloadInputsForm" method="get">
+  <input type="submit" value="Download inputs"/>
+</form>
 <ul id="hints">
 </ul>
 <form id="newHintForm" method="get">
@@ -34,6 +37,7 @@
 $(document).ready(function(){
 //  alert('ready')
   var id = window.location.pathname.split('/')[2]
+  document.getElementById("downloadInputsForm").action = "../../api/"+id+"/download"
   var getLocation = function(href) {
       var l = document.createElement("a");
       l.href = href;
@@ -121,21 +125,37 @@ $(document).ready(function(){
          }
        }
     });
-  $("#newHintForm").submit(function (e) {
+    $("#newHintForm").submit(function (e) {
+      e.preventDefault()
+      $.ajax({
+         url: "../../api/newhint/"+id,
+         type: "GET",
+         headers: {'Authorization':'Token '+localStorage.getItem('token')},
+         success: function(data) {
+
+           console.log(JSON.stringify(data))
+           hintTarget = document.getElementById("hints")
+           hintTarget.innerHTML = ""
+           var hintArray = []
+           for(var i = 0; i < data.length; i++) {
+             hintTarget.innerHTML += "<li>"+data[i].text+"</li>"
+           }
+         },
+         error: function(data) {
+           if (data.status==401) {
+             window.location.replace("../../user/login/")
+           }
+         }
+       })
+     });/*
+  $("#downloadInputsForm").submit(function (e) {
     e.preventDefault()
     $.ajax({
-       url: "../../api/newhint/"+id,
+       url: "../../api/"+id+"/download",
        type: "GET",
        headers: {'Authorization':'Token '+localStorage.getItem('token')},
        success: function(data) {
-
          console.log(JSON.stringify(data))
-         hintTarget = document.getElementById("hints")
-         hintTarget.innerHTML = ""
-         var hintArray = []
-         for(var i = 0; i < data.length; i++) {
-           hintTarget.innerHTML += "<li>"+data[i].text+"</li>"
-         }
        },
        error: function(data) {
          if (data.status==401) {
@@ -143,7 +163,7 @@ $(document).ready(function(){
          }
        }
      })
-    });
+   });*/
   $("#commentForm").submit(function(e) {
     e.preventDefault()
     console.log('comment')

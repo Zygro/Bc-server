@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import renderers
 
-from .serializers import UserSerializer, LoginSerializer, WrapperSerializer
+from .serializers import UserSerializer, LoginSerializer, WrapperSerializer, RegisterSerializer
 
 from .models import UserLessonWrapper
 # Create your views here.
@@ -39,7 +39,6 @@ class UserViewSet(
             username=request.data['username'],
             password=request.data['password'],
         )
-        print(User)
         if user is None:
             return self._fail_login_response('Incorrect credentials.')
         return self._successful_login_response(user)
@@ -51,7 +50,6 @@ class UserViewSet(
 
     def update_profile(self, request, *args, **kwargs):
         user = self.request.user
-        print (request.data)
         if 'first_name' in request.data:
             user.first_name = request.data['first_name']
         if 'last_name' in request.data:
@@ -78,13 +76,24 @@ class UserViewSet(
     def _successful_login_response(self, user):
         token = Token.objects.get_or_create(user=user)[0]
         loginSerializer = LoginSerializer()
-        print(token)
         return Response({'token':token.key, 'redirect_url': '/lessons/'}, template_name='login.html')
 
     def _fail_login_response(self, detail='BAD REQUEST'):
         loginSerializer = LoginSerializer()
         return Response({'loginSerializer': loginSerializer,'detail': detail}, status=status.HTTP_400_BAD_REQUEST, template_name='login.html')
 
+class RegisterViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,):
+    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer, renderers.BrowsableAPIRenderer)
+    serializer_class = RegisterSerializer
+    def displayRegister(self, request, *args, **kwargs):
+        return Response(template_name='register.html')
+    def perform_create(self, request, *args, **kwargs):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            token = Token.objects.get_or_create(user=user)[0]
+            loginSerializer = LoginSerializer()
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 class WrapperViewSet(viewsets.GenericViewSet, mixins.ListModelMixin,):
     serializer_class = WrapperSerializer
     def get_queryset(self):

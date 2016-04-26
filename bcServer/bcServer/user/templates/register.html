@@ -1,0 +1,34 @@
+<html><body>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+<form id="registerForm" method="post">
+  <input type="text" placeholder="username" name="username"> <br>
+  <input type="text" placeholder="email" name="email"> <br>
+  <input type="password" placeholder="password" name="password"><br>
+  <input type="password" placeholder="repeat password" name="repeatPassword" id= "repeatPassword"><br>
+  <input type="submit" value="register">
+</form>
+<script>
+  $(document).ready(function() {
+    $("#registerForm").submit(function(e){
+      e.preventDefault()
+      var formcontent = $(this).serialize()
+      console.log('hello!')
+      if (formcontent.password == formcontent.repeatPassword) {
+        $('#repeatPassword').attr("disabled", true)
+        $.ajax({
+          type: "POST",
+          url: "./register",
+          data: $(this).serialize(),
+          success: function(e) {
+            $('#email').attr("disabled", true)
+            window.location.href = './login'
+            return false
+          }
+        })
+      }
+    })
+  })
+
+</script>
+</body></html>

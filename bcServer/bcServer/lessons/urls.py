@@ -11,5 +11,6 @@ urlpatterns = [
     url(r'^api/hints/(?P<lessonID>[0-9]+)/$', HintViewSet.as_view({'get':'list'})),
     url(r'^api/newhint/(?P<lessonID>[0-9]+)/$', HintViewSet.as_view({'get':'get_new_hint'})),
     url(r'^api/lessonslist/$', LessonViewSet.as_view({'get': 'list'})),
-    url(r'^api/lesson/(?P<lessonID>[0-9]+)/$', LessonViewSet.as_view({'get':'singleLesson'}))
+    url(r'^api/lesson/(?P<lessonID>[0-9]+)/$', LessonViewSet.as_view({'get':'singleLesson'})),
+    url(r'^api/(?P<lessonID>[0-9]+)/download$', LessonViewSet.as_view({'get':'downloadInputs'})),
 ]

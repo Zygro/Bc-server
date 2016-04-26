@@ -43,7 +43,7 @@ class LessonStat(models.Model):
 
 class UserStat(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
-    progress = models.IntegerField(default=0)
+    progress = models.IntegerField(default=1)
     def __str__ (self):
         return self.user.username
 

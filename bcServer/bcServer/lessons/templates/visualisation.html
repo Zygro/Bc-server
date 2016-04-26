@@ -6,7 +6,8 @@ function f(<input id="arguments" type="text" />)<br>
 <input type="checkbox" id="memoIsOn">memorize<br>
 <button onclick="ev()">evaluate</button><br>
 <button onclick="nextStepClick()"> next step </button>
-<button onclick="stepBack()"> previous step </button><br>
+<button onclick="stepBack()"> previous step </button>
+<button onclick="drawAll()"> draw all </button><br>
 <button onclick="play()"> play </button>
 <button onclick="stop()"> pause </button><br>
 <canvas id="visualiser" width="1500" height="700" style="border:1px solid #000000;">no html5</canvas>
@@ -31,6 +32,7 @@ function f(<input id="arguments" type="text" />)<br>
   var memory = {}
   var firstOccurence = {}
   var memoIsOn
+  var totalLeaves
 
   const visualiser = document.getElementById("visualiser")
   const context = visualiser.getContext("2d");
@@ -45,6 +47,7 @@ function f(<input id="arguments" type="text" />)<br>
       depth: 0,
       children:[],
       showResult: false,
+      leavesCount: 0
     }
     newNode.id = nodesList.length
     if (nodeStack.length > 0) {
@@ -59,6 +62,13 @@ function f(<input id="arguments" type="text" />)<br>
     nodesList.push(newNode)
     var returnValue = originalFunction.apply(this, arguments)
     newNode.result = returnValue
+    if (newNode.children.length == 0) {
+      newNode.leavesCount = 1
+      } else {
+      for(child in newNode.children) {
+        newNode.leavesCount += nodesList[newNode.children[child]].leavesCount
+      }
+    }
     nodeStack.pop()
     return returnValue
   }
@@ -75,6 +85,7 @@ function f(<input id="arguments" type="text" />)<br>
       children:[],
       showResult: false,
       fromMemory: false,
+      leavesCount: 0,
     }
     newNode.id = nodesList.length
     if (nodeStack.length > 0) {
@@ -90,15 +101,22 @@ function f(<input id="arguments" type="text" />)<br>
     if (memory[newNode.args.toString()] != null) {
       returnValue = memory[newNode.args.toString()]
       newNode.fromMemory = true
+      newNode.leavesCount = 1
     } else {
       nodeStack.push(newNode.id)
       returnValue = originalFunction.apply(this, arguments)
       memory[newNode.args.toString()] = returnValue
       firstOccurence[newNode.args.toString()] = newNode.id
       nodeStack.pop()
+      if (newNode.children.length == 0) {
+        newNode.leavesCount = 1
+        } else {
+        for(child in newNode.children) {
+          newNode.leavesCount += nodesList[newNode.children[child]].leavesCount
+        }
+      }
     }
     newNode.result = returnValue
-    console.log(memory)
     return returnValue
   }
 
@@ -113,11 +131,17 @@ function f(<input id="arguments" type="text" />)<br>
 
   var calculateX = function(id, left, right) {
     var currentNode = nodesList[id]
+    console.log(currentNode)
     var size = right-left
     var childNumber = currentNode.children.length
+    var usedLeaves = 0
     currentNode.x = Math.round((left+right)/2)
     for (var i = 0; i < childNumber; i++) {
-      calculateX (currentNode.children[i], left + (size/childNumber)*i, left + (size/childNumber)*(i+1))
+      var child = nodesList[currentNode.children[i]]
+      calculateX (
+          child.id,left + (size/currentNode.leavesCount)*usedLeaves, left + (size/currentNode.leavesCount)*(usedLeaves+child.leavesCount)
+        )
+      usedLeaves += child.leavesCount
     }
   }
 
@@ -160,6 +184,7 @@ function ev() {
   }
   saveOriginalFunction(arguments, code)
   eval("makeTree("+parametersString+")")
+  totalLeaves = nodesList[0].leavesCount
   calculateX(0,0,maxX)
   calculateY()
   unresolvedNodes.push(0)
@@ -235,7 +260,7 @@ var nextStepClick = function() {
 
 var nextStep = function() {
   if (unresolvedNodes.length==0) {
-    return
+    return false
   }
   var lastUnresolved = nodesList[unresolvedNodes[unresolvedNodes.length-1]]
   checkIfResolved(lastUnresolved.id)
@@ -251,6 +276,11 @@ var nextStep = function() {
     }
   }
   redraw()
+  return true
+}
+
+var drawAll = function () {
+  while (nextStep()) {}
 }
 
 var stepBack = function() {

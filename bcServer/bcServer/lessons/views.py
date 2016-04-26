@@ -31,7 +31,6 @@ class CommentViewSet(
     serializer_class = CommentSerializer
 
     def perform_create(self, serializer):
-        print('create')
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
         serializer.save(user=self.request.user, lesson = lessonInstance)
 
@@ -67,6 +66,14 @@ class LessonViewSet(
             return Respone(status=status.HTTP_400_BAD_REQUEST)
         serializer = SingleLessonSerializer(lesson)
         return Response(serializer.data)
+    def downloadInputs(self, request, *args, **kwargs):
+        #player_progress = apps.get_model('stats','UserStat').objects.get(user=self.request.user).progress
+        lesson = Lesson.objects.get(id=self.kwargs['lessonID'])
+        #if lesson.number > player_progress:
+        #    return Respone(status=status.HTTP_400_BAD_REQUEST)
+        response = HttpResponse(lesson.inputs, content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=%s' % lesson.inputs
+        return response
 
 
 class SubmitViewSet(
@@ -80,12 +87,9 @@ class SubmitViewSet(
 
     def perform_create(self, serializer):
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
-        print(self.request.FILES['submittedFile'])
         res = compare_files(lessonInstance.correct_solution, self.request.FILES['submittedFile'])
-        print('mam result')
         if res=="OK":
             wrapper = UserLessonWrapper.objects.get(lesson = lessonInstance, user = self.request.user)
-            print(wrapper.completed)
             if not(wrapper.completed):
                 wrapper.completed=True
                 wrapper.save()
