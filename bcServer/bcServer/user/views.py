@@ -89,11 +89,13 @@ class RegisterViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,):
         return Response(template_name='register.html')
     def perform_create(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
+        print(request)
         if serializer.is_valid():
             user = serializer.save()
             token = Token.objects.get_or_create(user=user)[0]
             loginSerializer = LoginSerializer()
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 class WrapperViewSet(viewsets.GenericViewSet, mixins.ListModelMixin,):
     serializer_class = WrapperSerializer
     def get_queryset(self):

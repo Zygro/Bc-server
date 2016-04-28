@@ -1,34 +1,68 @@
 <html><body>
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-
+<a href="./login">back</a>
 <form id="registerForm" method="post">
   <input type="text" placeholder="username" name="username"> <br>
+  <h8 id = "usernameError"></h8>
   <input type="text" placeholder="email" name="email"> <br>
+  <h8 id = "emailError"></h8>
   <input type="password" placeholder="password" name="password"><br>
+  <h8 id = "passwordError"></h8>
   <input type="password" placeholder="repeat password" name="repeatPassword" id= "repeatPassword"><br>
+  <h8 id = "repeatPasswordError"></h8>
   <input type="submit" value="register">
 </form>
 <script>
   $(document).ready(function() {
     $("#registerForm").submit(function(e){
       e.preventDefault()
-      var formcontent = $(this).serialize()
-      console.log('hello!')
-      if (formcontent.password == formcontent.repeatPassword) {
-        $('#repeatPassword').attr("disabled", true)
+      var formcontent = $("#registerForm").serializeArray()
+      data = serializeObject(formcontent)
+      for (key in data) {
+        console.log(key+"Error")
+        document.getElementById(key+"Error").innerHTML =""
+      }
+      if (data.password == data.repeatPassword) {
+        delete data["repeatPassword"]
         $.ajax({
           type: "POST",
           url: "./register",
-          data: $(this).serialize(),
+          contentType: "application/json; charset=utf-8",
+          dataType: "json",
+          data: JSON.stringify(data),
           success: function(e) {
-            $('#email').attr("disabled", true)
             window.location.href = './login'
             return false
-          }
+          },
+          error: function(e) {
+            console.log(JSON.parse(e['responseText']))
+            response = JSON.parse(e['responseText'])
+            for (key in response) {
+              console.log(key+"Error")
+              document.getElementById(key+"Error").innerHTML = response[key]+"<br>"
+            }
+          },
         })
+      }  else {
+        document.getElementById("repeatPasswordError").innerHTML = "passwords don't match<br>"
       }
     })
   })
 
+  var serializeObject = function(a)
+  {
+     var o = {}
+     $.each(a, function() {
+         if (o[this.name]) {
+             if (!o[this.name].push) {
+                 o[this.name] = [o[this.name]]
+             }
+             o[this.name].push(this.value || '')
+         } else {
+             o[this.name] = this.value || ''
+         }
+     });
+     return o
+  };
 </script>
 </body></html>
