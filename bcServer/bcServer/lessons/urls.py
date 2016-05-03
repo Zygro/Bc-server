@@ -1,6 +1,6 @@
 from django.conf.urls import url, patterns
 
-from .views import LessonViewSet, SubmitViewSet, CommentViewSet, HintViewSet, SingleLessonView
+from .views import LessonViewSet, SubmitViewSet, CommentViewSet, HintViewSet, SingleLessonView, VisualisationViewSet
 
 urlpatterns = [
     url(r'^lessons/$', LessonViewSet.as_view({'get':'show'}),name='lessonsList'),
@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^api/lessonslist/$', LessonViewSet.as_view({'get': 'list'})),
     url(r'^api/lesson/(?P<lessonID>[0-9]+)/$', LessonViewSet.as_view({'get':'singleLesson'})),
     url(r'^api/(?P<lessonID>[0-9]+)/download$', LessonViewSet.as_view({'get':'downloadInputs'})),
+    url(r'^visualisation/', VisualisationViewSet.as_view())
 ]

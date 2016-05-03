@@ -140,3 +140,9 @@ class SingleLessonView(APIView):
     parser_classes = (MultiPartParser,)
     def get(self, request, *args, **kwargs):
         return Response(template_name='singlelesson.html')
+
+class VisualisationViewSet(APIView):
+    renderer_classes = [renderers.TemplateHTMLRenderer]
+    template_name = 'visualisation.html'
+    def get(self, request, *args, **kwargs):
+        return Response(template_name='visualisation.html')
