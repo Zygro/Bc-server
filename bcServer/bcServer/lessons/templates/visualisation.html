@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html>
 <body>
-function f(<input id="arguments" type="text" />)<br>
-<textarea id="input" cols="50" rows="20"></textarea>
+function f(<input id="arguments" type="text" value="n=5"/>)<br>
+<textarea id="input" cols="50" rows="20">
+  if (n==0) return 0
+  if (n==1) return 1
+  return f(n-1)+f(n-2)
+</textarea>
 <input type="checkbox" id="memoIsOn">memorize<br>
 <button onclick="ev()">evaluate</button><br>
 <button onclick="nextStepClick()"> next step </button>
@@ -327,6 +331,8 @@ function clear() {
   stop()
 }
 </script>
+
+
 
 </body>
 </html>
