@@ -37,47 +37,57 @@ function f(<input id="arguments" type="text" value="n=5"/>)<br>
   var firstOccurence = {}
   var memoIsOn
   var totalLeaves
-
+  var overflow = false
   const visualiser = document.getElementById("visualiser")
   const context = visualiser.getContext("2d");
   var modFunction = function() {
-    var newNode = {
-      id: 0,
-      x: 0,
-      y: 0,
-      parent: -1,
-      args: Array.from(arguments),
-      result: undefined,
-      depth: 0,
-      children:[],
-      showResult: false,
-      leavesCount: 0
-    }
-    newNode.id = nodesList.length
-    if (nodeStack.length > 0) {
-      newNode.parent = nodeStack[nodeStack.length-1]
-      nodesList[nodeStack[nodeStack.length-1]].children.push(newNode.id)
-    }
-    newNode.depth = nodeStack.length
-    if (newNode.depth > maxDepth) {
-      maxDepth = newNode.depth
-    }
-    nodeStack.push(newNode.id)
-    nodesList.push(newNode)
-    var returnValue = originalFunction.apply(this, arguments)
-    newNode.result = returnValue
-    if (newNode.children.length == 0) {
-      newNode.leavesCount = 1
-      } else {
-      for(child in newNode.children) {
-        newNode.leavesCount += nodesList[newNode.children[child]].leavesCount
+    if (!overflow) {
+      var newNode = {
+        id: 0,
+        x: 0,
+        y: 0,
+        parent: -1,
+        args: Array.from(arguments),
+        result: undefined,
+        depth: 0,
+        children:[],
+        showResult: false,
+        leavesCount: 0
       }
+      newNode.id = nodesList.length
+      if (nodeStack.length > 0) {
+        newNode.parent = nodeStack[nodeStack.length-1]
+        nodesList[nodeStack[nodeStack.length-1]].children.push(newNode.id)
+      }
+      newNode.depth = nodeStack.length
+      if (newNode.depth > maxDepth) {
+        maxDepth = newNode.depth
+      }
+      nodeStack.push(newNode.id)
+      nodesList.push(newNode)
+      if (nodeStack.length>100) {
+        alert ("too many nodes")
+        overflow = true
+        clear()
+        return -1
+      } else {
+        var returnValue = originalFunction.apply(this, arguments)
+      newNode.result = returnValue
+      if (newNode.children.length == 0) {
+        newNode.leavesCount = 1
+        } else {
+        for(child in newNode.children) {
+          newNode.leavesCount += nodesList[newNode.children[child]].leavesCount
+        }
+      }
+      nodeStack.pop()
+      return returnValue
     }
-    nodeStack.pop()
-    return returnValue
   }
+}
 
-  var modFunctionMemo = function() {
+var modFunctionMemo = function() {
+  if (!overflow) {
     var newNode = {
       id: 0,
       x: 0,
@@ -108,9 +118,16 @@ function f(<input id="arguments" type="text" value="n=5"/>)<br>
       newNode.leavesCount = 1
     } else {
       nodeStack.push(newNode.id)
-      returnValue = originalFunction.apply(this, arguments)
-      memory[newNode.args.toString()] = returnValue
-      firstOccurence[newNode.args.toString()] = newNode.id
+      if (nodeStack.length>100) {
+        alert ("too many nodes")
+        overflow = true
+        clear()
+        return -1
+      } else {
+        returnValue = originalFunction.apply(this, arguments)
+        memory[newNode.args.toString()] = returnValue
+        firstOccurence[newNode.args.toString()] = newNode.id
+      }
       nodeStack.pop()
       if (newNode.children.length == 0) {
         newNode.leavesCount = 1
@@ -123,6 +140,7 @@ function f(<input id="arguments" type="text" value="n=5"/>)<br>
     newNode.result = returnValue
     return returnValue
   }
+}
 
 
   var calculateY = function() {
