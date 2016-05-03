@@ -34,6 +34,7 @@ function f(<input id="arguments" type="text" value="n=5"/>)<br>
   var unresolvedNodes = []
   var stepStack = []
   var memory = {}
+  var drawnMemory = []
   var firstOccurence = {}
   var memoIsOn
   var totalLeaves
@@ -153,7 +154,7 @@ var modFunctionMemo = function() {
 
   var calculateX = function(id, left, right) {
     var currentNode = nodesList[id]
-    console.log(currentNode)
+  //  console.log(currentNode)
     var size = right-left
     var childNumber = currentNode.children.length
     var usedLeaves = 0
@@ -269,15 +270,37 @@ var drawNode = function(id) {
 }
 
 var redraw = function() {
-context.clearRect(0, 0, maxX, maxY)
+  context.clearRect(0, 0, maxX, maxY)
+  if (nodesList[currentNode].fromMemory && stepStack[stepStack.length-1] == -1) {
+    original = nodesList[firstOccurence[nodesList[currentNode].args.toString()]]
+    context.setLineDash([5])
+    context.beginPath()
+    context.moveTo(nodesList[currentNode].x, nodesList[currentNode].y)
+    context.lineTo(original.x, original.y)
+    context.stroke()
+    context.setLineDash([0])
+    //console.log(nodesList[currentNode].x+" "+ nodesList[currentNode].y)
+    console.log(firstOccurence[nodesList[currentNode].args.toString()])
+}
   for (i in drawnNodes) {
     drawNode(i)
   }
+  redrawMemory()
 }
 
 var nextStepClick = function() {
   stop()
   nextStep()
+}
+
+var redrawMemory = function() {
+  context.textAlign = "left"
+  context.fillStyle = "black"
+  for (i in drawnMemory) {
+    context.beginPath()
+    context.fillText(drawnMemory[i],0,i*20+20)
+    context.stroke()
+  }
 }
 
 var nextStep = function() {
@@ -289,10 +312,22 @@ var nextStep = function() {
   if (lastUnresolved.showResult) {
     stepStack.push(lastUnresolved.id)
     unresolvedNodes.pop()
+    if (memoIsOn) {
+      if (!lastUnresolved.fromMemory) {
+        drawnMemory.push("("+lastUnresolved.args.toString()+") = "+lastUnresolved.result)
+        //console.log(drawnMemory)
+      }
+    }
   } else {
     stepStack.push(-1)
     currentNode++
     drawnNodes.push(nodesList[currentNode])
+    if (memoIsOn) {
+      if (!nodesList[currentNode].fromMemory && nodesList[currentNode].children.length == 0) {
+        drawnMemory.push("("+nodesList[currentNode].args.toString()+") = "+nodesList[currentNode].result)
+        //console.log(drawnMemory)
+      }
+    }
     if(!checkIfResolved(currentNode)) {
       unresolvedNodes.push(currentNode)
     }
@@ -314,9 +349,16 @@ var stepBack = function() {
   if (step >= 0) {
     unresolvedNodes.push(step)
     nodesList[step].showResult = false
+    if (!nodesList[step].fromMemory) {
+      drawnMemory.pop()
+    }
+
   } else {
     if(unresolvedNodes[unresolvedNodes.length-1] == currentNode){
       unresolvedNodes.pop()
+    }
+    if (!nodesList[currentNode].fromMemory) {
+      drawnMemory.pop()
     }
     nodesList[currentNode].showResult = false
     currentNode--
@@ -345,6 +387,7 @@ function clear() {
   currentNode = 0
   memory = {}
   firstOccurence = {}
+  drawnMemory = []
   context.clearRect(0, 0, maxX, maxY)
   stop()
 }

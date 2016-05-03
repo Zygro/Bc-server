@@ -9,7 +9,11 @@
   <input type = "password" placeholder="password" name = "password">
   <input type="submit" value="Save">
 </form>
+<button id="registerButton"onclick="redirectToRegister()">register</button>
 <script>
+  function redirectToRegister(){
+    window.location.href = "./register"
+  }
     $(document).ready(function() {
       $("#loginForm").submit(function() {
         $.ajax({
