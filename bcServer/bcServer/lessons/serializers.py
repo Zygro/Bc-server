@@ -3,7 +3,7 @@ from .models import Lesson, Submit, Comment, Hint
 
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('id', 'number','pub_date', 'optional','name')
+        fields = ('id', 'number','pub_date', 'optional','name','interactive')
         model = Lesson
 
 class SubmitSerializer(serializers.ModelSerializer):
@@ -27,5 +27,5 @@ class HintSerializer(serializers.ModelSerializer):
         fields = ('id','lesson','text')
 class SingleLessonSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('id', 'number','pub_date', 'optional','name', 'problem', 'inputs')
+        fields = ('id', 'number','pub_date', 'optional','name', 'problem','interactive')
         model = Lesson

@@ -91,19 +91,20 @@ class SubmitViewSet(
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
         res = compare_files(lessonInstance.correct_solution, self.request.FILES['submittedFile'])
         lessonStat = LessonStat.objects.filter(lesson = lessonInstance)
-        if res=="OK":
-            wrapper = UserLessonWrapper.objects.get(lesson = lessonInstance, user = self.request.user)
-            if not(wrapper.completed):
-                lessonStat.update(good_solutions = F('good_solutions')+1)
-                wrapper.completed=True
-                wrapper.save()
-                if not(lessonInstance.optional):
-                    userStat = apps.get_model('stats','UserStat').objects.get(user = self.request.user)
-                    userStat.progress += 1
-                    userStat.save()
-        if res == "Wrong answer":
-            lessonStat.update(bad_solutions = F('bad_solutions')+1)
-        serializer.save(user = self.request.user, lesson = lessonInstance, result = res)
+        if (lessonInstance.interactive):
+            if res=="OK":
+                wrapper = UserLessonWrapper.objects.get(lesson = lessonInstance, user = self.request.user)
+                if not(wrapper.completed):
+                    lessonStat.update(good_solutions = F('good_solutions')+1)
+                    wrapper.completed=True
+                    wrapper.save()
+                    if not(lessonInstance.optional):
+                        userStat = apps.get_model('stats','UserStat').objects.get(user = self.request.user)
+                        userStat.progress += 1
+                        userStat.save()
+            if res == "Wrong answer":
+                lessonStat.update(bad_solutions = F('bad_solutions')+1)
+            serializer.save(user = self.request.user, lesson = lessonInstance, result = res)
 
     def get_queryset(self):
         userID = self.request.user

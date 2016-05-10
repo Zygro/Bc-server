@@ -1,15 +1,21 @@
 {% load rest_framework %}
 
-<html><body>
-<a href="../">back</a>
+<html><body bgcolor = "#F5F3EE">
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-<form method="POST" id = "loginForm">
+<h1 align = "center"> So, you want to learn dynamic programming? </h1>
+</br>
+<form method="POST" id = "loginForm" align = "center">
     {% csrf_token %}
-  <input type = "text" placeholder="username" name = "username">
-  <input type = "password" placeholder="password" name = "password">
-  <input type="submit" value="Save">
+  Username:<br>
+  <input type = "text" placeholder="username" name = "username" style = "margin-top:5px;margin-bottom:5px"> <br>
+  Password:<br>
+  <input type = "password" placeholder="password" name = "password" style = "margin-top:5px;margin-bottom:5px">
+  <br>
+  <input type="submit" value="Log in" style = "margin-top: 10px;background-color: #4A96AD;color:white">
 </form>
-<button id="registerButton"onclick="redirectToRegister()">register</button>
+<div align = "center">
+<button id="registerButton"onclick="redirectToRegister()" style = "margin-top: 10px;background-color: #4A96AD;color:white">Register</button>
+</div>
 <script>
   function redirectToRegister(){
     window.location.href = "./register"

@@ -1,16 +1,20 @@
-<html><body>
+<html><body bgcolor = "#F5F3EE">
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-<a href="./login">back</a>
-<form id="registerForm" method="post">
+<button onClick ="back()" style="background-color: #4A96AD;color:white">back</button>
+<form id="registerForm" method="post" align="center">
+  Username: <br>
   <input type="text" placeholder="username" name="username"> <br>
-  <h8 id = "usernameError"></h8>
+  <h8 id = "usernameError"></h8><br>
+  Email: <br>
   <input type="text" placeholder="email" name="email"> <br>
-  <h8 id = "emailError"></h8>
+  <h8 id = "emailError"></h8><br>
+  Password: <br>
   <input type="password" placeholder="password" name="password"><br>
-  <h8 id = "passwordError"></h8>
+  <h8 id = "passwordError"></h8><br>
+  Repeat password:<br>
   <input type="password" placeholder="repeat password" name="repeatPassword" id= "repeatPassword"><br>
-  <h8 id = "repeatPasswordError"></h8>
-  <input type="submit" value="register">
+  <h8 id = "repeatPasswordError"></h8><br>
+  <input type="submit" value="register" style="background-color: #4A96AD;color:white">
 </form>
 <script>
   $(document).ready(function() {
@@ -48,7 +52,9 @@
       }
     })
   })
-
+  function back() {
+    window.location.href = "./login"
+  }
   var serializeObject = function(a)
   {
      var o = {}

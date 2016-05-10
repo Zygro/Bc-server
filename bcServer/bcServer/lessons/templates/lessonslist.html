@@ -1,11 +1,64 @@
-<html><body>
+<html><body bgcolor = "#F5F3EE">
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-<p ><h5 id = "loggedInAs">logged in as </h5> <a href="../user/profile">Profile</a></p>
-<input type="button" value="logout" onclick="logout()"/>
-<h1>Lessons</h1>
-<ul id="links">
-</ul>
 
+<style>
+button {
+  background-color: #4A96AD;
+  color:white
+}
+a {font-size: 18px}
+a:link {
+    color: #7D1935
+}
+a:visited {
+    color: #7D1935
+}
+a:hover {
+    color: #4A96AD;
+}
+table {
+    margin-top: 18px;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+td {
+  padding: 10px;
+  border: 1px solid black;
+  border-collapse: collapse;
+  vertical-align: top;
+}
+
+</style>
+
+<h5 id = "loggedInAs">logged in as </h5> <button onClick="window.location.href='../user/profile'">Show profile</button>
+<button onclick="logout()">Log out</button>
+<table>
+  <tr align="center">
+    <td>
+      <h2>Mandatory lessons</h2>
+    </td>
+    <td>
+      <h2>Optional lessons</h2>
+    </td>
+    <td>
+      <h2>Learning texts</h2>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <ul id="mandatory" style="vertical-align: top;">
+      </ul>
+    </td>
+    <td>
+      <ul id="optional" style="vertical-align: top;align=center">
+      </ul>
+    </td>
+    <td>
+      <ul id="non_interactive" style="vertical-align: top;align=center">
+      </ul>
+    </td>
+  </tr>
+</table>
 <script>
 
 function logout(){
@@ -52,10 +105,18 @@ $(document).ready(function(){
            headers: {'Authorization':'Token '+localStorage.getItem('token')},
            success: function(data) {
              var len = data.length
-             linkTarget = document.getElementById("links")
              var linkArray = []
              for (var i = 0; i<len; i++) {
-              linkTarget.innerHTML += '<li><a href = "./'+data[i].id+'">'+data[i].number+'-'+data[i].name+'</a></li>'
+               lesson = data[i]
+               if (!lesson.optional) {
+                 document.getElementById("mandatory").innerHTML += '<li><a href = "./'+lesson.id+'">'+lesson.number+'-'+lesson.name+'</a></li>'
+               }
+               if (lesson.optional && lesson.interactive) {
+                 document.getElementById("optional").innerHTML += '<li><a href = "./'+lesson.id+'">'+lesson.number+'-'+lesson.name+'</a></li>'
+               }
+               if (!lesson.interactive) {
+                 document.getElementById("non_interactive").innerHTML += '<li><a href = "./'+lesson.id+'">'+lesson.number+'-'+lesson.name+'</a></li>'
+               }
              }
            },
            error: function(data) {

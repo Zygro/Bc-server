@@ -1,9 +1,37 @@
-<html><body>
+<html><body bgcolor = "#F5F3EE">
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-
+<style>
+button {
+  background-color: #4A96AD;
+  color:white
+}
+table {
+    margin-top: 18px;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+td {
+  padding: 10px;
+  border: 1px solid black;
+  border-collapse: collapse;
+  vertical-align: top;
+}
+input[type=submit] {
+  background-color: #4A96AD;
+  color:white
+}
+input[type=button] {
+  margin-left: 5px;
+  background-color: #4A96AD;
+  color:white
+}
+input[type=file] {
+  width: 160px
+}
+</style>
 </head>
 <body>
-<a href="../">back</a>
+<button onClick ="window.location.href='../'">back</button>
 <input type="button" value="logout" onclick="logout()"/>
 <h1 id="title"></h1>
 <p id = "problem"></p>
@@ -12,31 +40,38 @@
 </form>
 <ul id="hints">
 </ul>
+<div style = "float: left">
 <form id="newHintForm" method="get">
   <input type="submit" value="Get new hint"/>
 </form>
 <form id="upload" method="post" enctype="multipart/form-data">
-  <input type="file" name="submittedFile" id="file" />
-  <br />
+  <input type="file" name="submittedFile" id="submittedFile" />
   <input type="button" name="submit" value="Submit" onclick="uploadFile();" />
 </form>
-<div id= "submits">
-</div>
+<button id="submitToggleButton" onclick="toggleShowSubmits()">Show results</button>
+<ul id= "submits" > </ul>
 <form id = "ratingForm" method = "post" >
   <div id = "rating">
   </div>
 </form>
-<form id="commentForm" method="post">
+<form id="commentForm" method="post" style="width:35%">
   <h3> Leave a comment:</h3>
-  <textarea name="text" rows="5" cols="50"></textarea> <br>
+  <textarea name="text" rows="5" cols="70"></textarea> <br>
   <input type="submit" value="Send"/>
 </form>
-<Table rules="rows" border="1"style="width:50%" id = "discussion">
+<table rules="rows" border="1" style="width:440px" id = "discussion"></table>
+</div>
+
+<div style="float: left ;margin-top:100px">
 </div>
 <script>
+
+
+var submitResultsHTML
+var id = window.location.pathname.split('/')[2]
 $(document).ready(function(){
 //  alert('ready')
-  var id = window.location.pathname.split('/')[2]
+  document.getElementById("submits").innerHTML = ""
   document.getElementById("downloadInputsForm").action = "../../api/"+id+"/download"
   var getLocation = function(href) {
       var l = document.createElement("a");
@@ -50,7 +85,13 @@ $(document).ready(function(){
        success: function(data) {
          console.log(JSON.stringify(data));
          document.getElementById("title").innerHTML = "Lesson "+data['name']
-         document.getElementById("problem").innerHTML = "Lesson "+data['problem']
+         document.getElementById("problem").innerHTML = "<b>Problem:</b> <br> <pre>"+data['problem']+"</pre>"
+         console.log(data['interactive'])
+         if (!data['interactive']) {
+           document.getElementById("downloadInputsForm").innerHTML = ""
+           document.getElementById("upload").innerHTML = ""
+           document.getElementById("newHintForm").innerHTML = ""
+         }
         //document.getElementById("loggedInAs").innerHTML = "logged in as "+ data['username']
        },
        error: function(data) {
@@ -67,7 +108,7 @@ $(document).ready(function(){
          console.log(JSON.stringify(data));
          var discussion = document.getElementById("discussion")
          for (var i = 0; i < data.length; i++){
-           discussion.innerHTML += "<tr><th align=\"left\"><h3>"+ data[i].username +"</h3><h5>"+data[i].text+"</h5></th></tr>"
+           discussion.innerHTML += "<tr><th align=\"left\"><h3>"+ data[i].username +"</h3><pre>"+data[i].text+"</pre></th></tr>"
          }
        },
        error: function(data) {
@@ -96,10 +137,9 @@ $(document).ready(function(){
        type: "GET",
        headers: {'Authorization':'Token '+localStorage.getItem('token')},
        success: function(data) {
-         console.log(JSON.stringify(data))
          hintTarget = document.getElementById("hints")
          var hintArray = []
-         for(var i = 0; i < data.length; i++) {
+         for (var i = 0; i < data.length; i++) {
            hintTarget.innerHTML += "<li>"+data[i].text+"</li>"
          }
        },
@@ -109,22 +149,9 @@ $(document).ready(function(){
          }
        }
     });
-  $.ajax({
-       url: "../../api/submits/"+id,
-       type: "GET",
-       headers: {'Authorization':'Token '+localStorage.getItem('token')},
-       success: function(data) {
-         submitTarget = document.getElementById("submits")
-         for(var i = data.length-1; i >= 0; i--) {
-           submitTarget.innerHTML += "<li>"+data[i].result+"</li>"
-         }
-       },
-       error: function(data) {
-         if (data.status==401) {
-           window.location.replace("../../user/login/")
-         }
-       }
-    });
+
+    getSubmits(()=>{})
+
     $("#newHintForm").submit(function (e) {
       e.preventDefault()
       $.ajax({
@@ -147,26 +174,9 @@ $(document).ready(function(){
            }
          }
        })
-     });/*
-  $("#downloadInputsForm").submit(function (e) {
-    e.preventDefault()
-    $.ajax({
-       url: "../../api/"+id+"/download",
-       type: "GET",
-       headers: {'Authorization':'Token '+localStorage.getItem('token')},
-       success: function(data) {
-         console.log(JSON.stringify(data))
-       },
-       error: function(data) {
-         if (data.status==401) {
-           window.location.replace("../../user/login/")
-         }
-       }
-     })
-   });*/
+     });
   $("#commentForm").submit(function(e) {
     e.preventDefault()
-    console.log('comment')
     $.ajax({
       type: "POST",
       url: "../../api/discussion/"+id+"/",
@@ -232,8 +242,41 @@ function uploadFile(){
         counter = counter + 1;
     }
     var response =  xmlhttp.responseText;
-    location.reload()
+    document.getElementById("submittedFile").value = ""
+    getSubmits(() => {document.getElementById("submits").innerHTML = submitResultsHTML})
 }
+
+function toggleShowSubmits() {
+  if (document.getElementById("submitToggleButton").innerHTML == "Show results") {
+    document.getElementById("submitToggleButton").innerHTML = "Hide results"
+    document.getElementById("submits").innerHTML = submitResultsHTML
+  } else {
+    document.getElementById("submitToggleButton").innerHTML = "Show results"
+    document.getElementById("submits").innerHTML = ""
+  }
+}
+function getSubmits(callback) {
+  $.ajax({
+     url: "../../api/submits/"+id,
+     type: "GET",
+     headers: {'Authorization':'Token '+localStorage.getItem('token')},
+     success: function(data) {
+       submitResultsHTML = ""
+       submitTarget = document.getElementById("submits")
+       for (var i = data.length-1; i >= 0; i--) {
+         submitResultsHTML += "<li>"+data[i].result+"</li>"
+       }
+       console.log(submitResultsHTML)
+       callback()
+     },
+     error: function(data) {
+       if (data.status==401) {
+         window.location.replace("../../user/login/")
+       }
+     }
+  });
+}
+
 </script>
 
 <script id = "ratingFormHTML" language="text">

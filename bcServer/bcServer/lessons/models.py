@@ -17,36 +17,37 @@ class Lesson(models.Model):
     pub_date = models.DateTimeField('date published')
     number = models.IntegerField(default=1)
     optional = models.BooleanField(default=True)
+    interactive = models.BooleanField(default = False)
     inputs = models.FileField(null=True, blank=True,upload_to='inputs')
     correct_solution = models.FileField(null=True, blank=True, upload_to='outputs')
-
     def __str__(self):
         return str(self.number)+'-'+self.name
 
 def PushOtherLessons (sender, instance, *args, **kwargs):
-  if not(instance.optional):
     rank = instance.number
-    non_optionals = [x for x in Lesson.objects.all().order_by('number')
-      if not(x.optional) and x.id!=instance.id]
+    non_optionals = [x for x in Lesson.objects.all().order_by('number')if not(x.optional) and x.id!=instance.id]
     #fill the gaps
+    print(non_optionals)
     for l in non_optionals:
-      while len(Lesson.objects.filter(number = (l.number-1)))==0 and l.number>1:
+      while len(Lesson.objects.filter(number = (l.number-1), optional = False))==0 and l.number>1:
         Lesson.objects.filter(id=l.id).update(number = l.number-1)
         l.number -= 1
         print(l)
     #push later lessons one level up
-    if len(Lesson.objects.filter(number=rank))>0:
-      Lesson.objects.filter(number__gte = rank, optional=False).exclude(id=instance.id).update(number = F('number')+1)
+    if not(instance.optional):
+      if len(Lesson.objects.filter(number=rank))>0:
+        Lesson.objects.filter(number__gte = rank, optional=False).exclude(id=instance.id).update(number = F('number')+1)
     non_optionals = [x for x in Lesson.objects.all().order_by('number') if not(x.optional) and x.id!=instance.id]
     #fill the gaps again
     for l in non_optionals:
-      while len(Lesson.objects.filter(number = (l.number-1)))==0 and l.number>1:
+      while len(Lesson.objects.filter(number = (l.number-1), optional = False))==0 and l.number>1:
         Lesson.objects.filter(id=l.id).update(number = l.number-1)
         l.number -= 1
     #adjust saved lesson
-    while len(Lesson.objects.filter(number = (instance.number-1)))==0 and instance.number>1:
-      Lesson.objects.filter(id=instance.id).update(number = instance.number-1)
-      instance.number -= 1
+    if (not instance.optional):
+      while len(Lesson.objects.filter(number = (instance.number-1)))==0 and instance.number>1:
+        Lesson.objects.filter(id=instance.id).update(number = instance.number-1)
+        instance.number -= 1
 
 
 def MakeLessonStat (sender, instance, *args, **kwargs):
