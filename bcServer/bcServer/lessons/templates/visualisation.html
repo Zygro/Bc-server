@@ -66,7 +66,7 @@ function f(<input id="arguments" type="text" value="n=5"/>)<br>
       }
       nodeStack.push(newNode.id)
       nodesList.push(newNode)
-      if (nodeStack.length>100) {
+      if (nodesList.length>1000) {
         alert ("too many nodes")
         overflow = true
         clear()
@@ -119,7 +119,7 @@ var modFunctionMemo = function() {
       newNode.leavesCount = 1
     } else {
       nodeStack.push(newNode.id)
-      if (nodeStack.length>100) {
+      if (nodesList.length>1000) {
         alert ("too many nodes")
         overflow = true
         clear()
@@ -352,7 +352,6 @@ var stepBack = function() {
     if (!nodesList[step].fromMemory) {
       drawnMemory.pop()
     }
-
   } else {
     if(unresolvedNodes[unresolvedNodes.length-1] == currentNode){
       unresolvedNodes.pop()

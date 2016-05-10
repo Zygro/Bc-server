@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.apps import apps
 from django.conf import settings
 from django.shortcuts import redirect
+from django.db.models import F
 
 from rest_framework.decorators import list_route, api_view
 from rest_framework import viewsets, mixins, permissions
@@ -17,6 +18,7 @@ from .forms import SubmitForm
 from .serializers import CommentSerializer, LessonSerializer, SubmitSerializer, HintSerializer, SingleLessonSerializer
 from .models import Comment, Lesson, Submit, Hint
 from bcServer.user.models import UserLessonWrapper
+from bcServer.stats.models import LessonStat
 from .helpers import compare_files
 
 Base_url = '127.0.0.1:8000/'
@@ -88,15 +90,19 @@ class SubmitViewSet(
     def perform_create(self, serializer):
         lessonInstance = Lesson.objects.get(id = self.kwargs['lessonID'])
         res = compare_files(lessonInstance.correct_solution, self.request.FILES['submittedFile'])
+        lessonStat = LessonStat.objects.filter(lesson = lessonInstance)
         if res=="OK":
             wrapper = UserLessonWrapper.objects.get(lesson = lessonInstance, user = self.request.user)
             if not(wrapper.completed):
+                lessonStat.update(good_solutions = F('good_solutions')+1)
                 wrapper.completed=True
                 wrapper.save()
                 if not(lessonInstance.optional):
                     userStat = apps.get_model('stats','UserStat').objects.get(user = self.request.user)
                     userStat.progress += 1
                     userStat.save()
+        if res == "Wrong answer":
+            lessonStat.update(bad_solutions = F('bad_solutions')+1)
         serializer.save(user = self.request.user, lesson = lessonInstance, result = res)
 
     def get_queryset(self):
